@@ -67,5 +67,4 @@ coverage/
 tmp/
 temp/
 
-Package.json
 Package-lock.json
