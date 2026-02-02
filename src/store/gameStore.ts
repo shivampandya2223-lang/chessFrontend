@@ -1,101 +1,128 @@
-import { create } from 'zustand';
-import { Chess } from 'chess.js';
-import type { Square } from 'chess.js';
+import { create } from "zustand";
+import { Chess } from "chess.js";
+import type { Square } from "chess.js";
+
+export type GameStatus = "playing" | "checkmate" | "draw" | "stalemate";
 
 interface GameState {
-    chess: Chess;
-    selectedSquare: Square | null;
-    validMoves: Square[];
-    gameStatus: 'playing' | 'checkmate' | 'draw' | 'stalemate';
-    currentTurn: 'w' | 'b';
-    moveHistory: string[];
+  chess: Chess;
+  selectedSquare: Square | null;
+  validMoves: Square[];
+  currentTurn: "w" | "b";
+  gameStatus: GameStatus;
+  moveHistory: string[];
+  lastMove: { from: Square; to: Square } | null;
+  inCheck: boolean;
 
-    // Actions
-    selectSquare: (square: Square) => void;
-    makeMove: (from: Square, to: Square) => boolean;
-    resetGame: () => void;
-    getValidMoves: (square: Square) => Square[];
+  // Actions
+  selectSquare: (square: Square) => void;
+  makeMove: (from: Square, to: Square) => boolean;
+  getValidMoves: (square: Square) => Square[];
+  resetGame: () => void;
+  undoMove: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
-    chess: new Chess(),
-    selectedSquare: null,
-    validMoves: [],
-    gameStatus: 'playing',
-    currentTurn: 'w',
-    moveHistory: [],
+  chess: new Chess(),
+  selectedSquare: null,
+  validMoves: [],
+  currentTurn: "w",
+  gameStatus: "playing",
+  moveHistory: [],
+  lastMove: null,
+  inCheck: false,
 
-    selectSquare: (square: Square) => {
-        const { chess, selectedSquare } = get();
+  selectSquare: (square) => {
+    const { chess, selectedSquare } = get();
 
-        // If clicking the same square, deselect
-        if (selectedSquare === square) {
-            set({ selectedSquare: null, validMoves: [] });
-            return;
-        }
+    // Deselect if same square clicked
+    if (selectedSquare === square) {
+      set({ selectedSquare: null, validMoves: [] });
+      return;
+    }
 
-        // If a square is already selected, try to move
-        if (selectedSquare) {
-            const moved = get().makeMove(selectedSquare, square);
-            if (moved) {
-                set({ selectedSquare: null, validMoves: [] });
-                return;
-            }
-        }
+    // Try move if a square is already selected
+    if (selectedSquare) {
+      const moved = get().makeMove(selectedSquare, square);
+      if (moved) {
+        set({ selectedSquare: null, validMoves: [] });
+        return;
+      }
+    }
 
-        // Select new square and show valid moves
-        const piece = chess.get(square);
-        if (piece && piece.color === chess.turn()) {
-            const moves = get().getValidMoves(square);
-            set({ selectedSquare: square, validMoves: moves });
-        } else {
-            set({ selectedSquare: null, validMoves: [] });
-        }
-    },
+    // Select own piece
+    const piece = chess.get(square);
+    if (piece && piece.color === chess.turn()) {
+      const moves = get().getValidMoves(square);
+      set({ selectedSquare: square, validMoves: moves });
+    } else {
+      set({ selectedSquare: null, validMoves: [] });
+    }
+  },
 
-    makeMove: (from: Square, to: Square) => {
-        const { chess } = get();
+  makeMove: (from, to) => {
+    const { chess, moveHistory } = get();
 
-        try {
-            const move = chess.move({ from, to, promotion: 'q' });
+    // Clone chess instance (IMPORTANT)
+    const chessCopy = new Chess(chess.fen());
+    const move = chessCopy.move({ from, to, promotion: "q" });
 
-            if (move) {
-                let status: 'playing' | 'checkmate' | 'draw' | 'stalemate' = 'playing';
+    if (!move) return false;
 
-                if (chess.isCheckmate()) status = 'checkmate';
-                else if (chess.isDraw()) status = 'draw';
-                else if (chess.isStalemate()) status = 'stalemate';
+    let status: GameStatus = "playing";
 
-                set({
-                    chess: new Chess(chess.fen()),
-                    currentTurn: chess.turn(),
-                    gameStatus: status,
-                    moveHistory: [...get().moveHistory, move.san],
-                });
+    if (chessCopy.isCheckmate()) status = "checkmate";
+    else if (chessCopy.isStalemate()) status = "stalemate";
+    else if (chessCopy.isDraw()) status = "draw";
 
-                return true;
-            }
-        } catch (error) {
-            console.log('Invalid move:', error);
-        }
+    set({
+      chess: chessCopy,
+      currentTurn: chessCopy.turn(),
+      gameStatus: status,
+      moveHistory: [...moveHistory, move.san],
+      lastMove: { from, to },
+      inCheck: chessCopy.isCheck(),
+      selectedSquare: null,
+      validMoves: [],
+    });
 
-        return false;
-    },
+    return true;
+  },
 
-    getValidMoves: (square: Square) => {
-        const { chess } = get();
-        const moves = chess.moves({ square, verbose: true });
-        return moves.map((move) => move.to);
-    },
+  getValidMoves: (square) => {
+    const { chess } = get();
+    return chess
+      .moves({ square, verbose: true })
+      .map((move) => move.to);
+  },
 
-    resetGame: () => {
-        set({
-            chess: new Chess(),
-            selectedSquare: null,
-            validMoves: [],
-            gameStatus: 'playing',
-            currentTurn: 'w',
-            moveHistory: [],
-        });
-    },
+  undoMove: () => {
+    const { chess } = get();
+    const chessCopy = new Chess(chess.fen());
+
+    chessCopy.undo();
+
+    set({
+      chess: chessCopy,
+      currentTurn: chessCopy.turn(),
+      gameStatus: "playing",
+      lastMove: null,
+      inCheck: chessCopy.isCheck(),
+      selectedSquare: null,
+      validMoves: [],
+    });
+  },
+
+  resetGame: () => {
+    set({
+      chess: new Chess(),
+      selectedSquare: null,
+      validMoves: [],
+      currentTurn: "w",
+      gameStatus: "playing",
+      moveHistory: [],
+      lastMove: null,
+      inCheck: false,
+    });
+  },
 }));
