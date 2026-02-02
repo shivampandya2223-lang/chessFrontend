@@ -1,0 +1,71 @@
+# ===============================
+# Node / Package Managers
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===============================
+# Build outputs
+# ===============================
+dist/
+build/
+.vite/
+
+# ===============================
+# Environment variables
+# ===============================
+.env
+.env.local
+.env.*.local
+
+# ===============================
+# Logs
+# ===============================
+logs/
+*.log
+
+# ===============================
+# OS / Editor junk
+# ===============================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ===============================
+# TypeScript
+# ===============================
+*.tsbuildinfo
+
+# ===============================
+# Three.js / Assets
+# ===============================
+*.blend1
+*.blend2
+
+assets/raw/
+assets/high-poly/
+
+# ===============================
+# Testing / Coverage
+# ===============================
+coverage/
+
+# ===============================
+# Cache
+# ===============================
+.cache/
+.eslintcache
+
+# ===============================
+# Temporary files
+# ===============================
+tmp/
+temp/
+
+Package.json
+Package-lock.json
