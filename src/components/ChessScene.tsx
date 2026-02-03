@@ -13,7 +13,7 @@ const squareToPosition = (
   rank: number,
 ): [number, number, number] => {
   const x = (file - 3.5) * 0.5;
-  const z = (3.5 - rank) * 0.5;
+  const z = (rank - 3.5) * 0.5;
   return [x, 0, z];
 };
 
