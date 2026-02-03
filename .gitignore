@@ -68,3 +68,4 @@ tmp/
 temp/
 
 Package-lock.json
+.vercel
