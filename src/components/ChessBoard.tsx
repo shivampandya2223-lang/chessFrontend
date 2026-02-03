@@ -31,9 +31,8 @@ export const ChessBoard = ({ onSquareClick }: ChessBoardProps) => {
 
           return (
             <group key={square}>
-              {/* Invisible clickable plane */}
               <mesh
-                position={[position[0], 2, position[2]]}
+                position={[position[0], 0.01, position[2]]}
                 rotation={[-Math.PI / 2, 0, 0]}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -44,10 +43,9 @@ export const ChessBoard = ({ onSquareClick }: ChessBoardProps) => {
                 <meshBasicMaterial transparent opacity={0} />
               </mesh>
 
-              {/* Visual indicators for selected and valid moves */}
               {isSelected && (
                 <mesh
-                  position={[position[0], 0.15, position[2]]}
+                  position={[position[0], 0.05, position[2]]}
                   rotation={[-Math.PI / 2, 0, 0]}
                 >
                   <ringGeometry args={[0.15, 0.22, 32]} />
@@ -61,7 +59,7 @@ export const ChessBoard = ({ onSquareClick }: ChessBoardProps) => {
 
               {isValidMove && !isSelected && (
                 <mesh
-                  position={[position[0], 0.15, position[2]]}
+                  position={[position[0], 0.05, position[2]]}
                   rotation={[-Math.PI / 2, 0, 0]}
                 >
                   <circleGeometry args={[0.12, 32]} />
