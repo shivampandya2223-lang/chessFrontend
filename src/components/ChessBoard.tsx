@@ -20,17 +20,12 @@ export const ChessBoard = ({ onSquareClick }: ChessBoardProps) => {
     return [x, 0, z];
   };
 
-  const isLightSquare = (file: number, rank: number) => {
-    return (file + rank) % 2 === 0;
-  };
-
   return (
     <group>
       {files.map((file, fileIndex) =>
         ranks.map((rank, rankIndex) => {
           const square = `${file}${rank}` as Square;
           const position = getSquarePosition(fileIndex, rankIndex);
-          const isLight = isLightSquare(fileIndex, rankIndex);
           const isSelected = selectedSquare === square;
           const isValidMove = validMoves.includes(square);
 

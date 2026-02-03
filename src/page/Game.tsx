@@ -18,23 +18,26 @@ const Game = () => {
         shadows
         className="absolute inset-0"
         gl={{ antialias: true, alpha: false }}
+        dpr={[1, 1.5]}
       >
         {/* CAMERA */}
         <PerspectiveCamera makeDefault position={[0, 6, 6]} fov={50} />
 
-        {/* HDR ENVIRONMENT */}
+        {/* HDR ENVIRONMENT (lighting only, not background) */}
         <Suspense fallback={null}>
-          <Environment files="/background.exr" />
+          <Environment files="/background.exr" background={false} />
         </Suspense>
 
         {/* LIGHTING */}
-        <ambientLight intensity={0.4} />
+        <ambientLight intensity={0.35} />
 
+        {/* MAIN SUN LIGHT */}
         <directionalLight
           position={[5, 10, 5]}
-          intensity={1.2}
+          intensity={1.1}
           castShadow
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
           shadow-camera-far={50}
           shadow-camera-left={-10}
           shadow-camera-right={10}
@@ -42,18 +45,21 @@ const Game = () => {
           shadow-camera-bottom={-10}
         />
 
-        <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+        {/* FILL LIGHT */}
+        <directionalLight position={[-5, 5, -5]} intensity={0.25} />
 
+        {/* RIM / TOP LIGHT */}
         <spotLight
           position={[0, 10, 0]}
           angle={0.6}
           penumbra={1}
-          intensity={0.5}
+          intensity={0.4}
           castShadow
         />
 
-        <pointLight position={[3, 3, 3]} intensity={0.3} color="#60a5fa" />
-        <pointLight position={[-3, 3, -3]} intensity={0.3} color="#a78bfa" />
+        {/* ACCENT LIGHTS */}
+        <pointLight position={[3, 3, 3]} intensity={0.25} color="#60a5fa" />
+        <pointLight position={[-3, 3, -3]} intensity={0.25} color="#a78bfa" />
 
         {/* SCENE */}
         <Suspense fallback={null}>

@@ -9,7 +9,7 @@ import { useGameStore } from "../store/gameStore";
 import ChessModel from "../hooks/chess-model";
 
 /**
- * Convert chess square index → 3D world position
+ * Convert chess square → world position
  */
 const squareToPosition = (
   file: number,
@@ -21,10 +21,22 @@ const squareToPosition = (
 };
 
 /**
- * Map chess.js piece → model name
- * (you MUST match names inside your GLTF)
+ * chess.js → model key
  */
-const pieceKey = (piece: Piece) => `${piece.color}_${piece.type}`;
+const pieceKey = (piece: Piece) =>
+  `${piece.color}_${piece.type}` as
+    | "w_p"
+    | "w_r"
+    | "w_n"
+    | "w_b"
+    | "w_q"
+    | "w_k"
+    | "b_p"
+    | "b_r"
+    | "b_n"
+    | "b_b"
+    | "b_q"
+    | "b_k";
 
 export const ChessScene = () => {
   const { scene } = ChessModel();
@@ -33,28 +45,20 @@ export const ChessScene = () => {
   const boardRef = useRef<Group>(null);
 
   /**
-   * Clone scene ONCE
-   * Hide pieces (we render them dynamically)
+   * BOARD MODEL (hide original pieces)
    */
   const boardModel = useMemo(() => {
     const clone = scene.clone();
 
     clone.traverse((child) => {
+      // hide all GLTF pieces
+      if (child.name.startsWith("W_") || child.name.startsWith("B_")) {
+        child.visible = false;
+      }
+
       if (child instanceof Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-
-        // hide piece meshes inside GLTF
-        if (
-          child.name.toLowerCase().includes("pawn") ||
-          child.name.toLowerCase().includes("rook") ||
-          child.name.toLowerCase().includes("knight") ||
-          child.name.toLowerCase().includes("bishop") ||
-          child.name.toLowerCase().includes("queen") ||
-          child.name.toLowerCase().includes("king")
-        ) {
-          child.visible = false;
-        }
       }
     });
 
@@ -62,33 +66,57 @@ export const ChessScene = () => {
   }, [scene]);
 
   /**
-   * Extract individual piece models
+   * EXTRACT PIECE MODELS
    */
   const pieceModels = useMemo(() => {
     const map = new Map<string, Group>();
 
     scene.traverse((child) => {
-      if (child instanceof Group) {
-        const name = child.name.toLowerCase();
+      if (child.type !== "Object3D") return;
+      if (!child.name) return;
 
-        if (
-          name.includes("pawn") ||
-          name.includes("rook") ||
-          name.includes("knight") ||
-          name.includes("bishop") ||
-          name.includes("queen") ||
-          name.includes("king")
-        ) {
-          map.set(name, child);
-        }
-      }
+      const name = child.name;
+
+      const register = (key: string) => {
+        if (map.has(key)) return; // only once per type
+        const clone = child.clone(true);
+
+        clone.traverse((c: any) => {
+          if (c.isMesh) {
+            c.castShadow = true;
+            c.receiveShadow = true;
+          }
+        });
+
+        map.set(key, clone);
+        console.log("Registered model:", key);
+      };
+
+      if (name.startsWith("W_Pawn")) register("w_p");
+      if (name.startsWith("B_Pawn")) register("b_p");
+
+      if (name.startsWith("W_Rook")) register("w_r");
+      if (name.startsWith("B_Rook")) register("b_r");
+
+      if (name.startsWith("W_Knight")) register("w_n");
+      if (name.startsWith("B_Knight")) register("b_n");
+
+      if (name.startsWith("W_Bishop")) register("w_b");
+      if (name.startsWith("B_Bishop")) register("b_b");
+
+      if (name.startsWith("W_Queen")) register("w_q");
+      if (name.startsWith("B_Queen")) register("b_q");
+
+      if (name.startsWith("W_King")) register("w_k");
+      if (name.startsWith("B_King")) register("b_k");
     });
 
+    console.log("FINAL PIECE MAP:", [...map.keys()]);
     return map;
   }, [scene]);
 
   /**
-   * Slight board idle animation
+   * Board idle animation
    */
   useFrame((state) => {
     if (!boardRef.current) return;
@@ -100,15 +128,15 @@ export const ChessScene = () => {
 
   return (
     <group>
-      {/* CLICKABLE LOGIC BOARD */}
+      {/* LOGIC BOARD */}
       <ChessBoard onSquareClick={selectSquare} />
 
-      {/* STATIC BOARD MODEL */}
-      <group ref={boardRef} position={[0, 0, 0]}>
+      {/* STATIC BOARD */}
+      <group ref={boardRef}>
         <primitive object={boardModel} />
       </group>
 
-      {/* DYNAMIC PIECES */}
+      {/* PIECES */}
       {board.map((rank, r) =>
         rank.map((piece, f) => {
           if (!piece) return null;
@@ -116,19 +144,18 @@ export const ChessScene = () => {
           const square = `${"abcdefgh"[f]}${8 - r}` as Square;
           const pos = squareToPosition(f, r);
           const key = pieceKey(piece);
+          const model = pieceModels.get(key);
 
-          const model =
-            pieceModels.get(`${piece.color}_${piece.type}`.toLowerCase()) ||
-            pieceModels.get(piece.type); // fallback
-
-          if (!model) return null;
+          if (!model) {
+            console.warn("Missing model for:", key);
+            return null;
+          }
 
           return (
             <ChessPiece
               key={square}
               model={model}
               position={pos}
-              square={square}
               isSelected={selectedSquare === square}
               isValidMove={validMoves.includes(square)}
               onClick={() => selectSquare(square)}
