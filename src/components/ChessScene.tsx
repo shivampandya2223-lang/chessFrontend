@@ -108,10 +108,10 @@ export const ChessScene = () => {
 
           const square = `${"abcdefgh"[f]}${8 - r}` as Square;
           const pos = squareToPosition(f, r);
-          const key = pieceKey(piece);
+          const key = pieceKey(piece); // e.g., "w_k", "w_q"
           const model = pieceModels.get(key);
+
           if (!model) return null;
-          console.log("this is data:::", square, pos, key, model);
           return (
             <ChessPiece
               key={square}
@@ -119,6 +119,7 @@ export const ChessScene = () => {
               position={pos}
               isSelected={selectedSquare === square}
               isValidMove={validMoves.includes(square)}
+              pieceKey={key} // <--- ADD THIS LINE
               onClick={() => selectSquare(square)}
             />
           );

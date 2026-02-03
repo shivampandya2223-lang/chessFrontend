@@ -5,11 +5,18 @@ import { useFrame } from "@react-three/fiber";
 import { Group, Vector3, Mesh, Box3 } from "three";
 import gsap from "gsap";
 
+const MANUAL_OFFSETS: Record<string, [number, number, number]> = {
+  w_k: [-0.01, 0, 0.36],
+  w_q: [0, 0, -0.36],
+  b_k: [0, 0, 0],
+};
+
 interface ChessPieceProps {
   model: Group;
   position: [number, number, number];
   isSelected: boolean;
   isValidMove: boolean;
+  pieceKey: string; // 2. Add this prop
   onClick: () => void;
 }
 
@@ -18,6 +25,7 @@ export const ChessPiece = ({
   position,
   isSelected,
   isValidMove,
+  pieceKey, // 3. Destructure prop
   onClick,
 }: ChessPieceProps) => {
   const groupRef = useRef<Group>(null);
@@ -27,7 +35,6 @@ export const ChessPiece = ({
   const clonedModel = useMemo(() => {
     const clone = model.clone(true);
 
-    // Ensure all meshes are visible and cast shadows
     clone.traverse((child) => {
       child.visible = true;
       if (child instanceof Mesh) {
@@ -38,7 +45,6 @@ export const ChessPiece = ({
       }
     });
 
-    // 🔑 IMPORTANT: normalize using the FULL clone, not a child
     const renderRoot = clone;
 
     const box = new Box3().setFromObject(renderRoot);
@@ -47,33 +53,38 @@ export const ChessPiece = ({
     const center = new Vector3();
     box.getCenter(center);
 
-    // Fit piece inside a single square (0.5) with padding
     const maxDim = Math.max(size.x, size.z);
-    const scaleFactor = 0.38 / (maxDim || 1);
+    const scaleFactor = 0.25 / (maxDim || 1);
 
     renderRoot.scale.setScalar(scaleFactor);
 
-    // Normalize pivot: center X/Z and sit on board
+    // 4. Apply Auto-centering
     renderRoot.position.x = -center.x * scaleFactor;
     renderRoot.position.z = -center.z * scaleFactor;
     renderRoot.position.y = -box.min.y * scaleFactor;
 
-    return renderRoot;
-  }, [model]);
+    // 5. Apply Manual Offsets
+    // Since we scaled the object, the offset needs to be relative to world space
+    const offsets = MANUAL_OFFSETS[pieceKey];
+    if (offsets) {
+      renderRoot.position.x += offsets[0]; // Adjust X
+      renderRoot.position.y += offsets[1]; // Adjust Y (rarely needed)
+      renderRoot.position.z += offsets[2]; // Adjust Z
+    }
 
-  // Initial placement
+    return renderRoot;
+  }, [model, pieceKey]);
+
   useEffect(() => {
     if (!groupRef.current) return;
     groupRef.current.position.set(...position);
     target.current.set(...position);
   }, []);
 
-  // Update target when square changes
   useEffect(() => {
     target.current.set(...position);
   }, [position]);
 
-  // Smooth movement + lift
   useFrame(() => {
     if (!groupRef.current) return;
 
