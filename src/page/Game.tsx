@@ -12,56 +12,48 @@ import { ModelInspector } from "../components/ModelInspector";
 
 const Game = () => {
   return (
-    <div className="h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* 3D CANVAS */}
+    <div className="h-screen w-screen relative overflow-hidden bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
       <Canvas
         shadows
         className="absolute inset-0"
         gl={{ antialias: true, alpha: false }}
+        dpr={[1, 1.5]}
       >
-        {/* CAMERA */}
         <PerspectiveCamera makeDefault position={[0, 6, 6]} fov={50} />
 
-        {/* HDR ENVIRONMENT */}
         <Suspense fallback={null}>
-          <Environment files="/background.exr" />
+          <Environment files="/background.exr" background={false} />
         </Suspense>
 
-        {/* LIGHTING */}
-        <ambientLight intensity={0.4} />
-
+        <ambientLight intensity={0.35} />
         <directionalLight
           position={[5, 10, 5]}
-          intensity={1.2}
+          intensity={1.1}
           castShadow
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
           shadow-camera-far={50}
           shadow-camera-left={-10}
           shadow-camera-right={10}
           shadow-camera-top={10}
           shadow-camera-bottom={-10}
         />
-
-        <directionalLight position={[-5, 5, -5]} intensity={0.3} />
-
+        <directionalLight position={[-5, 5, -5]} intensity={0.25} />
         <spotLight
           position={[0, 10, 0]}
           angle={0.6}
           penumbra={1}
-          intensity={0.5}
+          intensity={0.4}
           castShadow
         />
+        <pointLight position={[3, 3, 3]} intensity={0.25} color="#60a5fa" />
+        <pointLight position={[-3, 3, -3]} intensity={0.25} color="#a78bfa" />
 
-        <pointLight position={[3, 3, 3]} intensity={0.3} color="#60a5fa" />
-        <pointLight position={[-3, 3, -3]} intensity={0.3} color="#a78bfa" />
-
-        {/* SCENE */}
         <Suspense fallback={null}>
           {import.meta.env.DEV && <ModelInspector />}
           <ChessScene />
         </Suspense>
 
-        {/* CONTROLS */}
         <OrbitControls
           enablePan={false}
           enableZoom
@@ -74,7 +66,6 @@ const Game = () => {
           dampingFactor={0.05}
         />
 
-        {/* SHADOW CATCHER */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, -0.11, 0]}
@@ -85,10 +76,8 @@ const Game = () => {
         </mesh>
       </Canvas>
 
-      {/* UI */}
       <GameUI />
 
-      {/* HINT */}
       <div className="absolute bottom-6 left-6 text-white/50 text-sm pointer-events-none">
         Use mouse to rotate • Scroll to zoom
       </div>
