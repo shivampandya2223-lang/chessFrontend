@@ -26,7 +26,7 @@ export const GameUI = () => {
           ← Back to Home
         </button>
 
-        <div className="px-8 py-4 bg-gradient-to-r from-blue-600/90 to-purple-600/90 text-white rounded-xl font-bold text-xl backdrop-blur-md shadow-lg">
+        <div className="px-8 py-4 bg-linear-to-r from-blue-600/90 to-purple-600/90 text-white rounded-xl font-bold text-xl backdrop-blur-md shadow-lg">
           {getStatusMessage()}
         </div>
 
@@ -70,7 +70,7 @@ export const GameUI = () => {
       {/* GAME OVER OVERLAY */}
       {gameStatus !== "playing" && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-auto">
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-12 rounded-2xl shadow-2xl text-center max-w-md">
+          <div className="bg-linear-to-br from-gray-800 to-gray-900 p-12 rounded-2xl shadow-2xl text-center max-w-md">
             <h2 className="text-4xl font-bold text-white mb-4">
               {gameStatus === "checkmate" && "🏆 Checkmate!"}
               {gameStatus === "draw" && "🤝 Draw!"}
@@ -87,14 +87,14 @@ export const GameUI = () => {
             <div className="flex gap-4 justify-center">
               <button
                 onClick={resetGame}
-                className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg"
+                className="px-8 py-4 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg"
               >
                 Play Again
               </button>
 
               <button
                 onClick={() => navigate("/")}
-                className="px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg"
+                className="px-8 py-4 bg-linear-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg"
               >
                 Home
               </button>
