@@ -42,14 +42,21 @@ export const ChessPiece = ({
     if (!renderRoot) return null;
 
     const box = new Box3().setFromObject(renderRoot);
+    const size = new Vector3();
+    box.getSize(size);
     const center = new Vector3();
     box.getCenter(center);
 
-    (renderRoot as Group).position.x -= center.x;
-    (renderRoot as Group).position.z -= center.z;
-    (renderRoot as Group).position.y -= box.min.y;
+    // Calculate scale to fit in a 0.5 square (with some padding, so 0.38)
+    const maxDim = Math.max(size.x, size.z);
+    const scaleFactor = 0.38 / (maxDim || 1); // Avoid division by zero
 
-    (renderRoot as Group).scale.setScalar(0.6);
+    (renderRoot as Group).scale.setScalar(scaleFactor);
+
+    // Apply scaled offsets to center the piece
+    (renderRoot as Group).position.x = -center.x * scaleFactor;
+    (renderRoot as Group).position.z = -center.z * scaleFactor;
+    (renderRoot as Group).position.y = -box.min.y * scaleFactor;
 
     return renderRoot;
   }, [model]);
