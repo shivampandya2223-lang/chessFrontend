@@ -26,8 +26,8 @@ export const ChessPiece = ({
 
   const clonedModel = useMemo(() => {
     const clone = model.clone(true);
-    let renderRoot: Group | null = null;
 
+    // Ensure all meshes are visible and cast shadows
     clone.traverse((child) => {
       child.visible = true;
       if (child instanceof Mesh) {
@@ -35,11 +35,11 @@ export const ChessPiece = ({
         child.receiveShadow = true;
         child.geometry.computeBoundingBox();
         child.geometry.computeBoundingSphere();
-        if (!renderRoot) renderRoot = child.parent as Group;
       }
     });
 
-    if (!renderRoot) return null;
+    // 🔑 IMPORTANT: normalize using the FULL clone, not a child
+    const renderRoot = clone;
 
     const box = new Box3().setFromObject(renderRoot);
     const size = new Vector3();
@@ -47,30 +47,33 @@ export const ChessPiece = ({
     const center = new Vector3();
     box.getCenter(center);
 
-    // Calculate scale to fit in a 0.5 square (with some padding, so 0.38)
+    // Fit piece inside a single square (0.5) with padding
     const maxDim = Math.max(size.x, size.z);
-    const scaleFactor = 0.38 / (maxDim || 1); // Avoid division by zero
+    const scaleFactor = 0.38 / (maxDim || 1);
 
-    (renderRoot as Group).scale.setScalar(scaleFactor);
+    renderRoot.scale.setScalar(scaleFactor);
 
-    // Apply scaled offsets to center the piece
-    (renderRoot as Group).position.x = -center.x * scaleFactor;
-    (renderRoot as Group).position.z = -center.z * scaleFactor;
-    (renderRoot as Group).position.y = -box.min.y * scaleFactor;
+    // Normalize pivot: center X/Z and sit on board
+    renderRoot.position.x = -center.x * scaleFactor;
+    renderRoot.position.z = -center.z * scaleFactor;
+    renderRoot.position.y = -box.min.y * scaleFactor;
 
     return renderRoot;
   }, [model]);
 
+  // Initial placement
   useEffect(() => {
     if (!groupRef.current) return;
     groupRef.current.position.set(...position);
     target.current.set(...position);
   }, []);
 
+  // Update target when square changes
   useEffect(() => {
     target.current.set(...position);
   }, [position]);
 
+  // Smooth movement + lift
   useFrame(() => {
     if (!groupRef.current) return;
 
@@ -86,8 +89,8 @@ export const ChessPiece = ({
   const handleClick = (e: any) => {
     e.stopPropagation();
     onClick();
-    if (!groupRef.current) return;
 
+    if (!groupRef.current) return;
     gsap.fromTo(
       groupRef.current.scale,
       { x: 1, y: 1, z: 1 },

@@ -98,7 +98,7 @@ export const ChessScene = () => {
 
   return (
     <group ref={boardRef}>
-      <primitive object={boardModel} />
+      <primitive object={boardModel} scale={2.3} position={[0, -0.45, 0]} />
 
       <ChessBoard onSquareClick={selectSquare} />
 
@@ -111,7 +111,7 @@ export const ChessScene = () => {
           const key = pieceKey(piece);
           const model = pieceModels.get(key);
           if (!model) return null;
-
+          console.log("this is data:::", square, pos, key, model);
           return (
             <ChessPiece
               key={square}

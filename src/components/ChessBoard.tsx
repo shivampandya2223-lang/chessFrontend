@@ -52,7 +52,7 @@ export const ChessBoard = ({ onSquareClick }: ChessBoardProps) => {
                   <meshBasicMaterial
                     color="#4ade80"
                     transparent
-                    opacity={0.8}
+                    opacity={0.01}
                   />
                 </mesh>
               )}
