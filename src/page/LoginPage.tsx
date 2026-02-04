@@ -39,16 +39,23 @@ const LoginPage = () => {
         >
           {/* Username (Register only) */}
           {isRegister && (
-            <input type="text" placeholder="Username" className="glass-input" />
+            <input
+              id="Username"
+              type="text"
+              placeholder="Username"
+              className="glass-input"
+            />
           )}
 
           <input
+            id="email"
             type="email"
             placeholder="Email address"
             className="glass-input"
           />
 
           <input
+            id="password"
             type="password"
             placeholder="Password"
             className="glass-input"
@@ -57,6 +64,7 @@ const LoginPage = () => {
           {/* Confirm Password (Register only) */}
           {isRegister && (
             <input
+              id="Comfirmpassword"
               type="password"
               placeholder="Confirm Password"
               className="glass-input"
