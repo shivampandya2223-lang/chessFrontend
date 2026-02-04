@@ -98,7 +98,7 @@ export const ChessScene = () => {
 
   return (
     <group ref={boardRef}>
-      <primitive object={boardModel} scale={2.3} position={[0, -0.45, 0]} />
+      <primitive object={boardModel} scale={2.35} position={[0, -0.4, -0.1]} />
 
       <ChessBoard onSquareClick={selectSquare} />
 

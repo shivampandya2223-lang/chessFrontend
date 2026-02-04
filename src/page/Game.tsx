@@ -6,9 +6,9 @@ import {
 } from "@react-three/drei";
 import { Suspense } from "react";
 
-import { ChessScene } from "../components/ChessScene";
-import { GameUI } from "../components/GameUI";
-import { ModelInspector } from "../components/ModelInspector";
+import { ChessScene } from "../game/ChessScene";
+import { GameUI } from "../game/GameUI";
+import { ModelInspector } from "../game/ModelInspector";
 
 const Game = () => {
   return (

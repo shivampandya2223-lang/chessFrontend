@@ -1,1 +1,7 @@
 @import "tailwindcss";
+.loginbtn{
+    @apply bg-white/50 rounded-2xl p-1 pl-2;
+}
+.btn{
+    @apply  bg-blue-500 rounded-2xl font-bold cursor-pointer hover:scale-110 transition-all duration-75  hover:bg-blue-700;
+}

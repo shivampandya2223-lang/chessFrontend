@@ -27,7 +27,6 @@ const Hero = () => {
   const navigate = useNavigate();
   return (
     <div className="h-screen w-screen relative overflow-hidden">
-      <Navbar />
       <Canvas
         camera={{ position: [-4, 3, 4], fov: 45 }}
         className="absolute top-0 left-0 w-full h-full z-0"
@@ -51,7 +50,7 @@ const Hero = () => {
           </p>
           <div className="pt-10">
             <button
-              className="h-20 w-60 bg-blue-500 rounded-2xl text-3xl font-bold cursor-pointer hover:scale-110 transition-all duration-75  hover:bg-blue-700"
+              className="h-20 w-60 btn text-3xl"
               onClick={() => navigate("/game")}
             >
               PLAY
@@ -59,6 +58,7 @@ const Hero = () => {
           </div>
         </div>
       </div>
+      <Navbar />
     </div>
   );
 };
