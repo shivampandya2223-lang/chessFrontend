@@ -28,7 +28,7 @@ const LoginPage = () => {
       }
 
       register(
-        { username, email, password },
+        { username, email, password, confirmPassword },
         {
           onSuccess: () => {
             navigate("/home");

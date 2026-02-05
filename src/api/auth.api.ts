@@ -8,6 +8,7 @@ export const register = (data: {
   username: string;
   email: string;
   password: string;
+  confirmPassword:string;
 }) => apiClient.post(Api.auth.register, data);
 
 export const getProfile = () =>
