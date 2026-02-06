@@ -2,6 +2,7 @@ import { CgProfile } from "react-icons/cg";
 import { useNavigate } from "react-router-dom";
 import { logout, isLoggedIn } from "../utils/auth";
 import { useState } from "react";
+import { RiGroupFill } from "react-icons/ri";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ const Navbar = () => {
       <div className="flex h-full w-full justify-between pr-4 pl-4 text-center items-center">
         <div>Chess</div>
         <div className="flex items-center gap-4">
+          <div>
+            <RiGroupFill className="text-2xl flex" />
+          </div>
           <div>{username}</div>
           <div className="h-10 w-10 rounded-full flex items-center justify-center">
             <button
