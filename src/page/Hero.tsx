@@ -46,17 +46,17 @@ const Hero = () => {
       { opponentUsername },
       {
         onSuccess: (res: any) => {
-          console.log("Room created:", res.data);
+          console.log("Room created API response:", res.data);
 
-          // The backend might return the opponent's user ID in res.data.room
-          const toUserId = res.data.room?.opponentId || res.data.room?.apponentId;
+          // Get the toUserId from the response (check common field names)
+          const room = res.data.room || res.data;
+          const toUserId = room.opponentId || room.apponentId || room.id;
+
+          console.log("📡 Sending socket challenge to:", toUserId);
 
           // Send a challenge request via socket so the opponent gets a notification
           socket.emit(SOCKET_EVENT.SEND_GAME_REQUEST, {
-            toUserId: toUserId, // Important for targeted routing
-            toUsername: opponentUsername,
-            fromUsername: localStorage.getItem("username") || "Someone",
-            fromUserId: localStorage.getItem("userId"),
+            toUserId: toUserId,
           });
 
           navigate("/game");

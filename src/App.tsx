@@ -4,13 +4,16 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./page/LoginPage";
 import { useSocket } from "./utils/useSocket";
 
-const App = () => {
-  // Global socket listener
+const SocketListener = () => {
   useSocket();
+  return null;
+};
 
+const App = () => {
   return (
     <div className=" h-screen w-screen">
       <Router>
+        <SocketListener />
         <Routes>
           <Route element={<Hero />} path="/" />
           <Route element={<Hero />} path="/home" />

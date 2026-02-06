@@ -8,7 +8,6 @@ import { OnlineUsersModal } from "./OnlineUsersModal";
 import { socket } from "../socket/socket";
 import { SOCKET_EVENT } from "../socket/event";
 import { FaCheck, FaTimes } from "react-icons/fa";
-import { useCreateRoomMutation } from "../queries/game.queries";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -62,9 +61,8 @@ const Navbar = () => {
 
                   {/* Connection Status Indicator */}
                   <div
-                    className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${
-                      isConnected ? "bg-green-500" : "bg-gray-500"
-                    }`}
+                    className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${isConnected ? "bg-green-500" : "bg-gray-500"
+                      }`}
                   ></div>
 
                   {/* Notification Badge */}
@@ -159,31 +157,19 @@ const GameRequestItem = ({
   request: GameRequest;
   onClose: () => void;
 }) => {
-  const { mutate: createRoomApi } = useCreateRoomMutation();
-
   const handleAccept = () => {
-    createRoomApi(
-      { opponentUsername: request.fromUsername },
-      {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onSuccess: (res: any) => {
-          console.log("Room created via API:", res.data);
-          socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
-            requestId: request.requestId,
-            room: res.data.room, // Assuming API returns room info
-          });
-          onClose();
-        },
-        onError: (err) => {
-          console.error("Failed to create room via API:", err);
-          alert("Could not create game room. Please try again.");
-        },
-      },
-    );
+    // Backend game:request:accept expects { fromUserId }
+    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
+      fromUserId: request.fromUserId,
+    });
+    onClose();
   };
 
   const handleReject = () => {
-    socket.emit(SOCKET_EVENT.REJECT_GAME_REQUEST, request.requestId);
+    // Backend game:request:decline expects { fromUserId }
+    socket.emit(SOCKET_EVENT.DECLINE_GAME_REQUEST, {
+      fromUserId: request.fromUserId,
+    });
   };
 
   return (

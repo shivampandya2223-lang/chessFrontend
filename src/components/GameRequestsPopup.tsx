@@ -1,37 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useSocketStore } from "../store/socketStore";
 import { socket } from "../socket/socket";
 import { SOCKET_EVENT } from "../socket/event";
 import { FaCheck, FaTimes } from "react-icons/fa";
-import { useCreateRoomMutation } from "../queries/game.queries";
 
 export const GameRequestsPopup = () => {
-  const { mutate: createRoomApi } = useCreateRoomMutation();
   const { gameRequests } = useSocketStore();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleAccept = (requestId: string, fromUsername: string) => {
-    createRoomApi(
-      { opponentUsername: fromUsername },
-      {
-        onSuccess: (res: any) => {
-          socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
-            requestId,
-            room: res.data.room,
-          });
-          setIsOpen(false);
-        },
-        onError: (err: any) => {
-          console.error("Failed to create room via API:", err);
-          alert("Could not create game room.");
-        },
-      },
-    );
+  const handleAccept = (fromUserId: string) => {
+    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, { fromUserId });
+    setIsOpen(false);
   };
 
-  const handleReject = (requestId: string) => {
-    socket.emit(SOCKET_EVENT.REJECT_GAME_REQUEST, requestId);
+  const handleReject = (fromUserId: string) => {
+    socket.emit(SOCKET_EVENT.DECLINE_GAME_REQUEST, { fromUserId });
   };
 
   if (gameRequests.length === 0) return null;
@@ -71,15 +54,13 @@ export const GameRequestsPopup = () => {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() =>
-                      handleAccept(request.requestId, request.fromUsername)
-                    }
+                    onClick={() => handleAccept(request.fromUserId)}
                     className="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2"
                   >
                     <FaCheck /> Accept
                   </button>
                   <button
-                    onClick={() => handleReject(request.requestId)}
+                    onClick={() => handleReject(request.fromUserId)}
                     className="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2"
                   >
                     <FaTimes /> Reject
@@ -91,7 +72,13 @@ export const GameRequestsPopup = () => {
         </div>
       )}
 
-      <button onClick={() => setIsOpen(!isOpen)} className="relative"></button>
+      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 hover:bg-white/10 rounded-full transition">
+        <RiGroupFill className="text-white text-xl" />
+      </button>
     </div>
   );
 };
+
+// Need to import RiGroupFill in GameRequestsPopup too if used, but it's usually in Navbar.
+// Actually, let's just use a simple icon or the RiGroupFill if it's available.
+import { RiGroupFill } from "react-icons/ri";

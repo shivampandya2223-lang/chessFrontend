@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { socket } from "../socket/socket";
 import { SOCKET_EVENT } from "../socket/event";
-import { useSocketStore } from "../store/socketStore";
-import type { GameRequest, GameRoom, OnlineUser } from "../store/socketStore";
+import { useSocketStore, type OnlineUser } from "../store/socketStore";
 import { isLoggedIn } from "./auth";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const useSocket = () => {
   const {
@@ -11,113 +11,144 @@ export const useSocket = () => {
     setOnlineUsers,
     addGameRequest,
     removeGameRequest,
-    removeSentRequest,
     setCurrentRoom,
+    clearRequests,
   } = useSocketStore();
 
-  useEffect(() => {
-    // Only connect if user is logged in
-    if (!isLoggedIn()) return;
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    // Connect socket if not already connected
-    if (!socket.connected) {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    // 1. Clean and Handle Token
+    let cleanToken = token?.trim() || "";
+    if (cleanToken.startsWith("Bearer ")) {
+      cleanToken = cleanToken.slice(7).trim();
+    }
+
+    console.log("🔍 [Socket Debug] Effect triggered:", {
+      path: location.pathname,
+      isLoggedIn: isLoggedIn(),
+      hasToken: !!cleanToken,
+      socketStatus: socket.connected ? "Connected" : "Disconnected"
+    });
+
+    // 2. Handle Logout/Unauthorized state
+    if (!isLoggedIn()) {
+      if (socket.connected) {
+        console.log("🔌 [Socket Debug] Disconnecting due to logout");
+        socket.disconnect();
+        setConnected(false);
+      }
+      return;
+    }
+
+    // 3. Handle Connection and Auth Injection
+    const currentSocketToken = socket.auth && (socket.auth as any).token;
+
+    if (cleanToken && cleanToken !== currentSocketToken) {
+      console.log("🔄 [Socket Debug] New token detected. Reconnecting with fresh auth...");
+      socket.disconnect();
+      socket.auth = { token: cleanToken };
+      socket.connect();
+    } else if (!socket.connected && cleanToken) {
+      console.log("📡 [Socket Debug] Initializing connection...");
+      socket.auth = { token: cleanToken };
       socket.connect();
     }
 
-    // Connection events
-    socket.on(SOCKET_EVENT.CONNECT, () => {
-      console.log("✅ Socket connected");
+    // --- Listeners ---
+
+    const handleConnect = () => {
+      console.log("✅ [Socket Debug] SOCKET CONNECTED! ID:", socket.id);
       setConnected(true);
-    });
+    };
 
-    socket.on(SOCKET_EVENT.DISCONNECT, () => {
-      console.log("❌ Socket disconnected");
+    const handleDisconnect = (reason: string) => {
+      console.warn("⚠️ [Socket Debug] SOCKET DISCONNECTED. Reason:", reason);
       setConnected(false);
-    });
+    };
 
-    socket.on(SOCKET_EVENT.ERROR, (error: { message?: string } | string) => {
-      console.error("Socket error:", error);
-    });
+    const handleConnectError = (error: any) => {
+      console.error("❌ [Socket Debug] CONNECTION ERROR:", error.message);
+      if (error.message === "Invalid token" || error.message === "Unauthorized") {
+        console.error("🚫 [Socket Debug] Auth Failure. Check JWT_SECRET keys.");
+      }
+      setConnected(false);
+    };
 
-    // Online users
-    socket.on(SOCKET_EVENT.ONLINE_USERS, (users: OnlineUser[]) => {
-      console.log("👥 Online users:", users);
+    socket.on(SOCKET_EVENT.CONNECT, handleConnect);
+    socket.on(SOCKET_EVENT.DISCONNECT, handleDisconnect);
+    socket.on("connect_error", handleConnectError);
+
+    // Online users - WITH EXTRA SAFETY
+    socket.on(SOCKET_EVENT.ONLINE_USERS, (userIds: any[]) => {
+      console.log("👥 [Socket Debug] Online users updated:", userIds);
+
+      if (!Array.isArray(userIds)) {
+        console.error("❌ [Socket Debug] userIds is not an array:", userIds);
+        return;
+      }
+      // Filter out null/undefined values and map to OnlineUser objects
+      const users: OnlineUser[] = userIds
+        .filter(id => id && typeof id === "string")
+        .map(id => {
+          const userObj = {
+            userId: id,
+            username: id === localStorage.getItem("userId")
+              ? (localStorage.getItem("username") || "Me")
+              : `User ${id.substring(0, 4)}`,
+            isOnline: true
+          };
+          return userObj;
+        });
+
+      console.log("📍 [Socket Debug] Mapped Online Users:", users);
       setOnlineUsers(users);
     });
 
-    socket.on(SOCKET_EVENT.USER_CONNECTED, (user: OnlineUser) => {
-      console.log("✅ User connected:", user);
-      const currentUsers = useSocketStore.getState().onlineUsers;
-      setOnlineUsers([...currentUsers.filter((u) => u.userId !== user.userId), user]);
-    });
-
-    socket.on(SOCKET_EVENT.USER_DISCONNECTED, (userId: string) => {
-      console.log("❌ User disconnected:", userId);
-      const currentUsers = useSocketStore.getState().onlineUsers;
-      setOnlineUsers(currentUsers.filter((u) => u.userId !== userId));
-    });
-
     // Game request received
-    socket.on(SOCKET_EVENT.GAME_REQUEST_RECEIVED, (request: GameRequest) => {
-      console.log("📨 Game request received:", request);
-      addGameRequest(request);
+    socket.on(SOCKET_EVENT.GAME_REQUEST_RECEIVED, (request: any) => {
+      console.log("📨 [Socket Debug] New request:", request);
+      addGameRequest({
+        requestId: request.requestId,
+        fromUserId: request.fromUserId,
+        fromUsername: request.fromUsername,
+        toUserId: localStorage.getItem("userId") || "",
+        toUsername: localStorage.getItem("username") || "",
+        createdAt: request.createdAt,
+      });
     });
 
-    // Game request accepted
-    socket.on(SOCKET_EVENT.ACCEPT_GAME_REQUEST, (data: { requestId: string; room: GameRoom }) => {
-      console.log("✅ Game request accepted:", data);
-      removeGameRequest(data.requestId);
-      removeSentRequest(data.requestId);
-      setCurrentRoom(data.room);
-    });
+    // Game started
+    socket.on(SOCKET_EVENT.GAME_START, (data: { roomId: string, white: string, black: string }) => {
+      console.log("🎮 [Socket Debug] Game starting! Redirecting to /game...", data);
 
-    // Game request rejected
-    socket.on(SOCKET_EVENT.REJECT_GAME_REQUEST, (requestId: string) => {
-      console.log("❌ Game request rejected:", requestId);
-      removeSentRequest(requestId);
-    });
+      setCurrentRoom({
+        roomId: data.roomId,
+        creatorId: data.white,
+        creatorUsername: "Opponent",
+        opponentId: data.black,
+        apponentUsername: "Opponent",
+        status: "active"
+      });
 
-    // Game request cancelled
-    socket.on(SOCKET_EVENT.CANCEL_GAME_REQUEST, (requestId: string) => {
-      console.log("🚫 Game request cancelled:", requestId);
-      removeGameRequest(requestId);
-    });
-
-    // Room events
-    socket.on(SOCKET_EVENT.ROOM_CREATED, (room: GameRoom) => {
-      console.log("🏠 Room created:", room);
-      setCurrentRoom(room);
-    });
-
-    socket.on(SOCKET_EVENT.ROOM_JOINED, (room: GameRoom) => {
-      console.log("🚪 Joined room:", room);
-      setCurrentRoom(room);
-    });
-
-    socket.on(SOCKET_EVENT.GAME_START, (room: GameRoom) => {
-      console.log("🎮 Game started:", room);
-      setCurrentRoom(room);
+      // Clear pending requests and navigate to game screen
+      clearRequests();
+      navigate("/game");
     });
 
     // Cleanup
     return () => {
-      socket.off(SOCKET_EVENT.CONNECT);
-      socket.off(SOCKET_EVENT.DISCONNECT);
-      socket.off(SOCKET_EVENT.ERROR);
+      socket.off(SOCKET_EVENT.CONNECT, handleConnect);
+      socket.off(SOCKET_EVENT.DISCONNECT, handleDisconnect);
+      socket.off("connect_error", handleConnectError);
       socket.off(SOCKET_EVENT.ONLINE_USERS);
-      socket.off(SOCKET_EVENT.USER_CONNECTED);
-      socket.off(SOCKET_EVENT.USER_DISCONNECTED);
       socket.off(SOCKET_EVENT.GAME_REQUEST_RECEIVED);
-      socket.off(SOCKET_EVENT.ACCEPT_GAME_REQUEST);
-      socket.off(SOCKET_EVENT.REJECT_GAME_REQUEST);
-      socket.off(SOCKET_EVENT.CANCEL_GAME_REQUEST);
-      socket.off(SOCKET_EVENT.ROOM_CREATED);
-      socket.off(SOCKET_EVENT.ROOM_JOINED);
       socket.off(SOCKET_EVENT.GAME_START);
-      // We don't always want to disconnect if other components use it,
-      // but since Navbar is global, it's fine.
     };
-  }, [setConnected, setOnlineUsers, addGameRequest, removeGameRequest, removeSentRequest, setCurrentRoom]);
+  }, [location.pathname, setConnected, setOnlineUsers, addGameRequest, removeGameRequest, setCurrentRoom, clearRequests, navigate]);
 
   return socket;
 };

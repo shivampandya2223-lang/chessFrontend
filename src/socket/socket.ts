@@ -1,15 +1,12 @@
 import { Socket, io } from "socket.io-client";
 
+// Port 2026 based on user's latest server status
 const SOCKET_URL = "http://localhost:2026";
 
 export const socket: Socket = io(SOCKET_URL, {
     autoConnect: false,
-    transports: ["websocket"],
-    auth: (cb) => {
-        cb({
-            token: localStorage.getItem("token"),
-            userId: localStorage.getItem("userId"),
-            username: localStorage.getItem("username"),
-        });
-    },
+    transports: ["websocket", "polling"], // Try websocket first, then polling
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
 });

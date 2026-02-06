@@ -10,30 +10,14 @@ export const OnlineUsersModal = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
-  const { onlineUsers, sentRequests } = useSocketStore();
+  const { onlineUsers } = useSocketStore();
   const currentUserId = localStorage.getItem("userId");
 
-  const handleSendRequest = (toUserId: string, toUsername: string) => {
-    const fromUsername = localStorage.getItem("username") || "Unknown";
-
+  const handleSendRequest = (toUserId: string) => {
+    console.log("♟️ Emitting game:request:send to:", toUserId);
     socket.emit(SOCKET_EVENT.SEND_GAME_REQUEST, {
       toUserId,
-      toUsername,
-      fromUserId: currentUserId,
-      fromUsername,
     });
-  };
-
-  const handleCancelRequest = (requestId: string) => {
-    socket.emit(SOCKET_EVENT.CANCEL_GAME_REQUEST, requestId);
-  };
-
-  const isRequestSent = (userId: string) => {
-    return sentRequests.some((req) => req.toUserId === userId);
-  };
-
-  const getRequestId = (userId: string) => {
-    return sentRequests.find((req) => req.toUserId === userId)?.requestId;
   };
 
   if (!isOpen) return null;
@@ -67,9 +51,6 @@ export const OnlineUsersModal = ({
           ) : (
             <div className="space-y-3">
               {otherUsers.map((user) => {
-                const requestSent = isRequestSent(user.userId);
-                const requestId = getRequestId(user.userId);
-
                 return (
                   <div
                     key={user.userId}
@@ -90,23 +71,12 @@ export const OnlineUsersModal = ({
                       </div>
                     </div>
 
-                    {requestSent ? (
-                      <button
-                        onClick={() => handleCancelRequest(requestId!)}
-                        className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition"
-                      >
-                        Cancel
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() =>
-                          handleSendRequest(user.userId, user.username)
-                        }
-                        className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2"
-                      >
-                        <FaGamepad /> Challenge
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleSendRequest(user.userId)}
+                      className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2"
+                    >
+                      <FaGamepad /> Challenge
+                    </button>
                   </div>
                 );
               })}

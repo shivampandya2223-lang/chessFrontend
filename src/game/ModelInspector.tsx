@@ -9,28 +9,25 @@ export const ModelInspector = () => {
   const { scene } = ChessModel();
 
   useEffect(() => {
-    console.log("=== CHESS MODEL STRUCTURE ===");
-    console.log("Root scene:", scene);
-
     let meshCount = 0;
     let groupCount = 0;
 
     scene.traverse((child) => {
       if (child.type === "Mesh") {
         meshCount++;
-        console.log(`Mesh ${meshCount}:`, {
-          name: child.name,
-          type: child.type,
-          position: child.position,
-          userData: child.userData,
-        });
+        // console.log(`Mesh ${meshCount}:`, {
+        //   name: child.name,
+        //   type: child.type,
+        //   position: child.position,
+        //   userData: child.userData,
+        // });
       } else if (child.type === "Group") {
         groupCount++;
-        console.log(`Group ${groupCount}:`, {
-          name: child.name,
-          type: child.type,
-          children: child.children.length,
-        });
+        // console.log(`Group ${groupCount}:`, {
+        //   name: child.name,
+        //   type: child.type,
+        //   children: child.children.length,
+        // });
       }
     });
 
