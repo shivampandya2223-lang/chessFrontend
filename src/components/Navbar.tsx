@@ -5,10 +5,10 @@ import { useState } from "react";
 import { RiGroupFill } from "react-icons/ri";
 import { useSocketStore, type GameRequest } from "../store/socketStore";
 import { OnlineUsersModal } from "./OnlineUsersModal";
-import { useSocket } from "../utils/useSocket";
 import { socket } from "../socket/socket";
 import { SOCKET_EVENT } from "../socket/event";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { useCreateRoomMutation } from "../queries/game.queries";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -16,9 +16,6 @@ const Navbar = () => {
   const [showBtn, setShowBtn] = useState(false);
   const [showOnlineUsers, setShowOnlineUsers] = useState(false);
   const [showRequests, setShowRequests] = useState(false);
-
-  useSocket();
-
   const { gameRequests, isConnected } = useSocketStore();
 
   const handleClick = () => {
@@ -37,17 +34,20 @@ const Navbar = () => {
 
   const handleGroupClick = () => {
     if (isLoggedIn()) {
-      if (gameRequests.length > 0) {
+      // If there are requests, show the dropdown, otherwise show the online users modal
+      // But allow clicking to show online users even if there are requests (via the modal toggle)
+      if (gameRequests.length > 0 && !showOnlineUsers) {
         setShowRequests(!showRequests);
       } else {
         setShowOnlineUsers(!showOnlineUsers);
+        setShowRequests(false);
       }
     }
   };
 
   return (
     <>
-      <div className="w-screen h-14 absolute top-0 left-0 flex z-10 bg-linear-to-l from-purple-400/20 to-purple-200/60">
+      <div className="w-full h-14 absolute top-0 left-0 flex z-50 bg-linear-to-l from-purple-400/20 to-purple-200/60">
         <div className="flex h-full w-full justify-between pr-4 pl-4 text-center items-center">
           <div className="text-xl font-bold">Chess</div>
           <div className="flex items-center gap-4">
@@ -159,9 +159,27 @@ const GameRequestItem = ({
   request: GameRequest;
   onClose: () => void;
 }) => {
+  const { mutate: createRoomApi } = useCreateRoomMutation();
+
   const handleAccept = () => {
-    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, request.requestId);
-    onClose();
+    createRoomApi(
+      { opponentUsername: request.fromUsername },
+      {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onSuccess: (res: any) => {
+          console.log("Room created via API:", res.data);
+          socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
+            requestId: request.requestId,
+            room: res.data.room, // Assuming API returns room info
+          });
+          onClose();
+        },
+        onError: (err) => {
+          console.error("Failed to create room via API:", err);
+          alert("Could not create game room. Please try again.");
+        },
+      },
+    );
   };
 
   const handleReject = () => {

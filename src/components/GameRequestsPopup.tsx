@@ -1,16 +1,33 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useSocketStore } from "../store/socketStore";
 import { socket } from "../socket/socket";
 import { SOCKET_EVENT } from "../socket/event";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { useCreateRoomMutation } from "../queries/game.queries";
 
 export const GameRequestsPopup = () => {
+  const { mutate: createRoomApi } = useCreateRoomMutation();
   const { gameRequests } = useSocketStore();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleAccept = (requestId: string) => {
-    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, requestId);
-    setIsOpen(false);
+  const handleAccept = (requestId: string, fromUsername: string) => {
+    createRoomApi(
+      { opponentUsername: fromUsername },
+      {
+        onSuccess: (res: any) => {
+          socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
+            requestId,
+            room: res.data.room,
+          });
+          setIsOpen(false);
+        },
+        onError: (err: any) => {
+          console.error("Failed to create room via API:", err);
+          alert("Could not create game room.");
+        },
+      },
+    );
   };
 
   const handleReject = (requestId: string) => {
@@ -54,7 +71,9 @@ export const GameRequestsPopup = () => {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleAccept(request.requestId)}
+                    onClick={() =>
+                      handleAccept(request.requestId, request.fromUsername)
+                    }
                     className="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2"
                   >
                     <FaCheck /> Accept

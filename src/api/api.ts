@@ -10,4 +10,7 @@ export const Api = {
     register: `${API_BASE_URL}/auth/register`,
     profile: `${API_BASE_URL}/auth/profile`,
   },
+  game: {
+    create: `${API_BASE_URL}/game/create`,
+  },
 };
