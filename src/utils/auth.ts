@@ -1,16 +1,16 @@
-export const isLoggedIn = ()=>{
-    const tokem = localStorage.getItem("token");
+export const isLoggedIn = () => {
+    const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
 
-    return !!tokem && !!userId;
-}
+    return !!token && !!userId;
+};
 
-export const logout =()=>{
-    if(isLoggedIn()){
+export const logout = () => {
+    if (isLoggedIn()) {
         console.log("logout")
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         localStorage.removeItem("username");
-        
+
     }
 }
