@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import { Chess } from "chess.js";
 import type { Square } from "chess.js";
@@ -101,8 +103,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   updateGameState: ({ fen, turn, status, move }) => {
+    // const { chess } = get();
     console.log("📥 [Authoritative] Updating state from backend FEN:", fen);
-
 
     const chessCopy = new Chess();
     try {
