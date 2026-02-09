@@ -17,6 +17,6 @@ export const SOCKET_EVENT = {
     // Game room / play
     GAME_START: "game:start",
     MOVE: "game:move",
-    MOVE_MADE: "game:move:made",
-    GAME_OVER: "game:over",
+    GAME_END: "game:end",
+    GAME_REJOIN: "game:rejoin",
 };

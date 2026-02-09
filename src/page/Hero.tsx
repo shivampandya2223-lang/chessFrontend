@@ -6,9 +6,9 @@ import ChessModel from "../hooks/chess-model";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useCreateRoomMutation } from "../queries/game.queries";
-import { socket } from "../socket/socket";
-import { SOCKET_EVENT } from "../socket/event";
 import { isLoggedIn } from "../utils/auth";
+import { socketActions } from "../socket/socketActions";
+
 
 const RotatingChess = () => {
   const { scene } = ChessModel();
@@ -52,14 +52,11 @@ const Hero = () => {
           const room = res.data.room || res.data;
           const toUserId = room.opponentId || room.apponentId || room.id;
 
-          console.log("📡 Sending socket challenge to:", toUserId);
-
           // Send a challenge request via socket so the opponent gets a notification
-          socket.emit(SOCKET_EVENT.SEND_GAME_REQUEST, {
-            toUserId: toUserId,
-          });
+          socketActions.sendGameRequest(toUserId);
 
           navigate("/game");
+
         },
         onError: (err) => {
           console.error("Failed to create room:", err);

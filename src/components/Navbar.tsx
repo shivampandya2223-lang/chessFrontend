@@ -5,8 +5,7 @@ import { useState } from "react";
 import { RiGroupFill } from "react-icons/ri";
 import { useSocketStore, type GameRequest } from "../store/socketStore";
 import { OnlineUsersModal } from "./OnlineUsersModal";
-import { socket } from "../socket/socket";
-import { SOCKET_EVENT } from "../socket/event";
+import { socketActions } from "../socket/socketActions";
 import { FaCheck, FaTimes } from "react-icons/fa";
 
 const Navbar = () => {
@@ -33,8 +32,6 @@ const Navbar = () => {
 
   const handleGroupClick = () => {
     if (isLoggedIn()) {
-      // If there are requests, show the dropdown, otherwise show the online users modal
-      // But allow clicking to show online users even if there are requests (via the modal toggle)
       if (gameRequests.length > 0 && !showOnlineUsers) {
         setShowRequests(!showRequests);
       } else {
@@ -50,7 +47,6 @@ const Navbar = () => {
         <div className="flex h-full w-full justify-between pr-4 pl-4 text-center items-center">
           <div className="text-xl font-bold">Chess</div>
           <div className="flex items-center gap-4">
-            {/* Online Users / Game Requests Icon */}
             {isLoggedIn() && (
               <div className="relative">
                 <button
@@ -58,14 +54,9 @@ const Navbar = () => {
                   className="relative hover:scale-110 transition-transform"
                 >
                   <RiGroupFill className="text-2xl flex" />
-
-                  {/* Connection Status Indicator */}
                   <div
-                    className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${isConnected ? "bg-green-500" : "bg-gray-500"
-                      }`}
+                    className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${isConnected ? "bg-green-500" : "bg-gray-500"}`}
                   ></div>
-
-                  {/* Notification Badge */}
                   {gameRequests.length > 0 && (
                     <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                       {gameRequests.length}
@@ -73,7 +64,6 @@ const Navbar = () => {
                   )}
                 </button>
 
-                {/* Game Requests Dropdown */}
                 {showRequests && gameRequests.length > 0 && (
                   <div className="absolute top-12 right-0 w-80 bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden">
                     <div className="bg-linear-to-r from-purple-600 to-blue-600 p-3 flex justify-between items-center">
@@ -114,10 +104,8 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* Username */}
             {username && <div className="text-sm font-medium">{username}</div>}
 
-            {/* Profile Icon */}
             <div className="h-10 w-10 rounded-full flex items-center justify-center relative">
               <button
                 onClick={handleClick}
@@ -140,7 +128,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Online Users Modal */}
       <OnlineUsersModal
         isOpen={showOnlineUsers}
         onClose={() => setShowOnlineUsers(false)}
@@ -149,7 +136,6 @@ const Navbar = () => {
   );
 };
 
-// Game Request Item Component
 const GameRequestItem = ({
   request,
   onClose,
@@ -158,18 +144,12 @@ const GameRequestItem = ({
   onClose: () => void;
 }) => {
   const handleAccept = () => {
-    // Backend game:request:accept expects { fromUserId }
-    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
-      fromUserId: request.fromUserId,
-    });
+    socketActions.acceptGameRequest(request.fromUserId);
     onClose();
   };
 
   const handleReject = () => {
-    // Backend game:request:decline expects { fromUserId }
-    socket.emit(SOCKET_EVENT.DECLINE_GAME_REQUEST, {
-      fromUserId: request.fromUserId,
-    });
+    socketActions.declineGameRequest(request.fromUserId);
   };
 
   return (

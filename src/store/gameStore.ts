@@ -1,11 +1,14 @@
 import { create } from "zustand";
 import { Chess } from "chess.js";
 import type { Square } from "chess.js";
+import { socketActions } from "../socket/socketActions";
+import { useSocketStore } from "./socketStore";
 
 export type GameStatus = "playing" | "checkmate" | "draw" | "stalemate";
 
 interface GameState {
   chess: Chess;
+  playerColor: "w" | "b" | null;
   selectedSquare: Square | null;
   validMoves: Square[];
   currentTurn: "w" | "b";
@@ -15,15 +18,17 @@ interface GameState {
   inCheck: boolean;
 
   // Actions
+  setPlayerColor: (color: "w" | "b" | null) => void;
   selectSquare: (square: Square) => void;
-  makeMove: (from: Square, to: Square) => boolean;
+  makeMove: (from: Square, to: Square) => void;
+  updateGameState: (data: { fen: string; turn: "w" | "b"; status: GameStatus; move?: any }) => void;
   getValidMoves: (square: Square) => Square[];
   resetGame: () => void;
-  undoMove: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   chess: new Chess(),
+  playerColor: null,
   selectedSquare: null,
   validMoves: [],
   currentTurn: "w",
@@ -32,8 +37,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastMove: null,
   inCheck: false,
 
+  setPlayerColor: (color) => set({ playerColor: color }),
+
   selectSquare: (square) => {
-    const { chess, selectedSquare } = get();
+    const { chess, selectedSquare, playerColor, gameStatus } = get();
+
+    if (gameStatus !== "playing") return;
+
+    // 1. Ensure it's the player's turn
+    if (playerColor !== chess.turn()) {
+      set({ selectedSquare: null, validMoves: [] });
+      return;
+    }
 
     // Deselect if same square clicked
     if (selectedSquare === square) {
@@ -43,16 +58,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // Try move if a square is already selected
     if (selectedSquare) {
-      const moved = get().makeMove(selectedSquare, square);
-      if (moved) {
-        set({ selectedSquare: null, validMoves: [] });
+      // Check if the clicked square is a valid move for the selected piece
+      const moves = get().getValidMoves(selectedSquare);
+      if (moves.includes(square)) {
+        get().makeMove(selectedSquare, square);
         return;
       }
     }
 
     // Select own piece
     const piece = chess.get(square);
-    if (piece && piece.color === chess.turn()) {
+    if (piece && piece.color === playerColor) {
       const moves = get().getValidMoves(square);
       set({ selectedSquare: square, validMoves: moves });
     } else {
@@ -61,32 +77,50 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   makeMove: (from, to) => {
-    const { chess, moveHistory } = get();
+    const { chess, playerColor } = get();
 
-    // Clone chess instance (IMPORTANT)
+    // Prevent moves if it's not our turn
+    if (playerColor !== chess.turn()) return;
+
+    // Validate move locally first (optional but good for UX)
     const chessCopy = new Chess(chess.fen());
-    const move = chessCopy.move({ from, to, promotion: "q" });
+    const moveResult = chessCopy.move({ from, to, promotion: "q" });
 
-    if (!move) return false;
+    if (!moveResult) return;
 
-    let status: GameStatus = "playing";
+    // NO OPTIMISTIC UPDATE HERE.
+    // Instead, we just emit to the backend.
+    const currentRoom = useSocketStore.getState().currentRoom;
+    if (currentRoom?.roomId) {
+      console.log("📤 [Authoritative] Emitting move to backend:", { from, to });
+      socketActions.makeMove(currentRoom.roomId, { from, to, promotion: "q" });
+    }
 
-    if (chessCopy.isCheckmate()) status = "checkmate";
-    else if (chessCopy.isStalemate()) status = "stalemate";
-    else if (chessCopy.isDraw()) status = "draw";
+    // Clear local selection immediately for better UX
+    set({ selectedSquare: null, validMoves: [] });
+  },
+
+  updateGameState: ({ fen, turn, status, move }) => {
+    console.log("📥 [Authoritative] Updating state from backend FEN:", fen);
+
+
+    const chessCopy = new Chess();
+    try {
+      chessCopy.load(fen);
+    } catch (e) {
+      console.error("❌ Failed to load FEN from backend:", fen);
+      return;
+    }
 
     set({
       chess: chessCopy,
-      currentTurn: chessCopy.turn(),
+      currentTurn: turn,
       gameStatus: status,
-      moveHistory: [...moveHistory, move.san],
-      lastMove: { from, to },
       inCheck: chessCopy.isCheck(),
+      lastMove: move ? { from: move.from, to: move.to } : get().lastMove,
       selectedSquare: null,
       validMoves: [],
     });
-
-    return true;
   },
 
   getValidMoves: (square) => {
@@ -96,26 +130,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       .map((move) => move.to);
   },
 
-  undoMove: () => {
-    const { chess } = get();
-    const chessCopy = new Chess(chess.fen());
-
-    chessCopy.undo();
-
-    set({
-      chess: chessCopy,
-      currentTurn: chessCopy.turn(),
-      gameStatus: "playing",
-      lastMove: null,
-      inCheck: chessCopy.isCheck(),
-      selectedSquare: null,
-      validMoves: [],
-    });
-  },
-
   resetGame: () => {
     set({
       chess: new Chess(),
+      playerColor: null,
       selectedSquare: null,
       validMoves: [],
       currentTurn: "w",

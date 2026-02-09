@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useSocketStore } from "../store/socketStore";
-import { socket } from "../socket/socket";
-import { SOCKET_EVENT } from "../socket/event";
+import { socketActions } from "../socket/socketActions";
 import { FaCheck, FaTimes } from "react-icons/fa";
 
 export const GameRequestsPopup = () => {
@@ -9,13 +8,14 @@ export const GameRequestsPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleAccept = (fromUserId: string) => {
-    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, { fromUserId });
+    socketActions.acceptGameRequest(fromUserId);
     setIsOpen(false);
   };
 
   const handleReject = (fromUserId: string) => {
-    socket.emit(SOCKET_EVENT.DECLINE_GAME_REQUEST, { fromUserId });
+    socketActions.declineGameRequest(fromUserId);
   };
+
 
   if (gameRequests.length === 0) return null;
 

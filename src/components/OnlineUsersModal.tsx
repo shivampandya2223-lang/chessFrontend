@@ -1,6 +1,5 @@
 import { useSocketStore } from "../store/socketStore";
-import { socket } from "../socket/socket";
-import { SOCKET_EVENT } from "../socket/event";
+import { socketActions } from "../socket/socketActions";
 import { FaGamepad, FaTimes } from "react-icons/fa";
 
 export const OnlineUsersModal = ({
@@ -14,11 +13,9 @@ export const OnlineUsersModal = ({
   const currentUserId = localStorage.getItem("userId");
 
   const handleSendRequest = (toUserId: string) => {
-    console.log("♟️ Emitting game:request:send to:", toUserId);
-    socket.emit(SOCKET_EVENT.SEND_GAME_REQUEST, {
-      toUserId,
-    });
+    socketActions.sendGameRequest(toUserId);
   };
+
 
   if (!isOpen) return null;
 
