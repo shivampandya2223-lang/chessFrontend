@@ -2,7 +2,7 @@ import { useGameStore } from "../store/gameStore";
 import { useNavigate } from "react-router-dom";
 
 export const GameUI = () => {
-  const { currentTurn, gameStatus, moveHistory, resetGame } = useGameStore();
+  const { currentTurn, gameStatus, resetGame } = useGameStore();
 
   const navigate = useNavigate();
 
@@ -36,35 +36,6 @@ export const GameUI = () => {
         >
           New Game
         </button>
-      </div>
-
-      {/* MOVE HISTORY */}
-      <div className="absolute right-6 top-24 bottom-6 w-64 bg-gray-900/90 backdrop-blur-md rounded-xl p-4 flex flex-col pointer-events-auto shadow-2xl">
-        <h3 className="text-white font-bold text-lg mb-3 border-b border-gray-700 pb-2">
-          Move History
-        </h3>
-
-        <div className="flex-1 overflow-y-auto space-y-1">
-          {moveHistory.length === 0 ? (
-            <p className="text-gray-400 text-sm italic">No moves yet</p>
-          ) : (
-            moveHistory.map((move, index) => (
-              <div
-                key={index}
-                className={`px-3 py-2 rounded text-sm ${
-                  index % 2 === 0
-                    ? "bg-blue-600/30 text-blue-100"
-                    : "bg-purple-600/30 text-purple-100"
-                }`}
-              >
-                <span className="font-semibold text-gray-300">
-                  {Math.floor(index / 2) + 1}.
-                </span>{" "}
-                {move}
-              </div>
-            ))
-          )}
-        </div>
       </div>
 
       {/* GAME OVER OVERLAY */}
