@@ -48,91 +48,136 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="w-full h-14 absolute top-0 left-0 flex z-50 bg-linear-to-l from-purple-400/20 to-purple-200/60">
-        <div className="flex h-full w-full justify-between pr-4 pl-4 text-center items-center">
-          <div className="text-xl font-bold">Chess</div>
-          <div className="flex items-center gap-4">
-            {isLoggedIn() && (
-              <div className="relative">
-                <button
-                  onClick={handleGroupClick}
-                  className="relative hover:scale-110 transition-transform"
-                >
-                  <RiGroupFill className="text-2xl flex" />
-                  <div
-                    className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${isConnected ? "bg-green-500" : "bg-gray-500"}`}
-                  ></div>
-                  {gameRequests.length > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                      {gameRequests.length}
+      return (
+      <>
+        <nav className="fixed top-0 left-0 w-full h-20 flex items-center z-50 px-6 md:px-12 pointer-events-none">
+          <div className="w-full flex justify-between items-center pointer-events-auto">
+            {/* Logo */}
+            <div
+              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => navigate("/")}
+            >
+              <div className="h-10 w-10 bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform duration-300">
+                <span className="text-xl font-bold tracking-tighter">C</span>
+              </div>
+              <span className="text-2xl font-bold text-white tracking-tight font-premium hidden sm:block">
+                CHESS<span className="text-blue-500">PRO</span>
+              </span>
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 shadow-2xl">
+              {isLoggedIn() && (
+                <div className="relative">
+                  <button
+                    onClick={handleGroupClick}
+                    className="relative h-11 w-11 flex items-center justify-center rounded-xl hover:bg-white/10 transition-all group"
+                    title="Online Players"
+                  >
+                    <RiGroupFill className="text-2xl text-white/80 group-hover:text-white transition-colors" />
+                    <div
+                      className={`absolute bottom-2 right-2 h-2.5 w-2.5 rounded-full border-2 border-[#020617] ${isConnected ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-gray-500"}`}
+                    ></div>
+                    {gameRequests.length > 0 && (
+                      <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-lg h-5 min-w-5 px-1 flex items-center justify-center animate-pulse border-2 border-[#020617]">
+                        {gameRequests.length}
+                      </div>
+                    )}
+                  </button>
+
+                  {showRequests && gameRequests.length > 0 && (
+                    <div className="absolute top-14 right-0 w-80 bg-[#0f172a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                      <div className="bg-linear-to-r from-blue-600 to-indigo-700 p-4 flex justify-between items-center">
+                        <h3 className="text-white font-bold text-sm">
+                          Game Requests ({gameRequests.length})
+                        </h3>
+                        <button
+                          onClick={() => setShowRequests(false)}
+                          className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition"
+                        >
+                          <FaTimes size={14} />
+                        </button>
+                      </div>
+
+                      <div className="max-h-80 overflow-y-auto">
+                        {gameRequests.map((request) => (
+                          <GameRequestItem
+                            key={request.requestId}
+                            request={request}
+                            onClose={() => setShowRequests(false)}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="p-4 border-t border-white/5 bg-white/5">
+                        <button
+                          onClick={() => {
+                            setShowRequests(false);
+                            setShowOnlineUsers(true);
+                          }}
+                          className="w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl text-xs font-bold transition-all border border-white/10"
+                        >
+                          VIEW ALL PLAYERS
+                        </button>
+                      </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              <div className="h-8 w-px bg-white/10 mx-1 hidden sm:block" />
+
+              {username && (
+                <div className="px-3 hidden md:block">
+                  <p className="text-[10px] text-white/40 font-bold tracking-widest uppercase -mb-0.5">
+                    Player
+                  </p>
+                  <p className="text-sm font-semibold text-white tracking-tight">
+                    {username}
+                  </p>
+                </div>
+              )}
+
+              <div className="relative">
+                <button
+                  onClick={handleClick}
+                  className="h-11 w-11 rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-lg hover:shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all"
+                >
+                  <CgProfile size={24} />
                 </button>
 
-                {showRequests && gameRequests.length > 0 && (
-                  <div className="absolute top-12 right-0 w-80 bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden">
-                    <div className="bg-linear-to-r from-purple-600 to-blue-600 p-3 flex justify-between items-center">
-                      <h3 className="text-white font-bold text-sm">
-                        Game Requests ({gameRequests.length})
-                      </h3>
-                      <button
-                        onClick={() => setShowRequests(false)}
-                        className="text-white hover:bg-white/20 rounded px-2 py-1 text-xs"
-                      >
-                        Close
-                      </button>
+                {showBtn && (
+                  <div className="absolute top-14 right-0 w-48 bg-[#0f172a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2 border-b border-white/5 mb-1 md:hidden">
+                      <p className="text-[10px] text-white/40 font-bold uppercase">
+                        Player
+                      </p>
+                      <p className="text-sm font-semibold text-white truncate">
+                        {username}
+                      </p>
                     </div>
-
-                    <div className="max-h-96 overflow-y-auto">
-                      {gameRequests.map((request) => (
-                        <GameRequestItem
-                          key={request.requestId}
-                          request={request}
-                          onClose={() => setShowRequests(false)}
-                        />
-                      ))}
-                    </div>
-
-                    <div className="p-3 border-t border-white/10">
-                      <button
-                        onClick={() => {
-                          setShowRequests(false);
-                          setShowOnlineUsers(true);
-                        }}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold transition"
-                      >
-                        View All Players
-                      </button>
-                    </div>
+                    <button
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all font-semibold text-sm"
+                      onClick={handleLogout}
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                        <FaTimes />
+                      </div>
+                      Logout Account
+                    </button>
                   </div>
                 )}
               </div>
-            )}
-
-            {username && <div className="text-sm font-medium">{username}</div>}
-
-            <div className="h-10 w-10 rounded-full flex items-center justify-center relative">
-              <button
-                onClick={handleClick}
-                className="w-full h-full hover:cursor-pointer rounded-full hover:scale-110 transition-transform"
-              >
-                <CgProfile className="h-full w-full text-black" />
-              </button>
-              {showBtn && (
-                <div className="absolute top-12 right-0">
-                  <button
-                    className="bg-red-500 p-2 rounded-xl text-white hover:cursor-pointer hover:bg-red-600 transition whitespace-nowrap"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
             </div>
           </div>
-        </div>
-      </div>
+        </nav>
 
+        <OnlineUsersModal
+          isOpen={showOnlineUsers}
+          onClose={() => setShowOnlineUsers(false)}
+        />
+      </>
+      );
       <OnlineUsersModal
         isOpen={showOnlineUsers}
         onClose={() => setShowOnlineUsers(false)}

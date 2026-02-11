@@ -43,31 +43,44 @@ export const ChessBoard = ({ onSquareClick }: ChessBoardProps) => {
                 <meshBasicMaterial transparent opacity={0} />
               </mesh>
 
+              {/* Selection Marker */}
               {isSelected && (
                 <mesh
                   position={[position[0], 0.05, position[2]]}
                   rotation={[-Math.PI / 2, 0, 0]}
                 >
-                  <ringGeometry args={[0.15, 0.22, 32]} />
+                  <ringGeometry args={[0.18, 0.23, 64]} />
                   <meshBasicMaterial
-                    color="#4ade80"
+                    color="#60a5fa"
                     transparent
-                    opacity={0.01}
+                    opacity={0.8}
                   />
+                  <mesh
+                    position={[0, 0, -0.01]}
+                  >
+                    <ringGeometry args={[0.16, 0.25, 64]} />
+                    <meshBasicMaterial color="#3b82f6" transparent opacity={0.3} />
+                  </mesh>
                 </mesh>
               )}
 
+              {/* Legal Move Marker */}
               {isValidMove && !isSelected && (
                 <mesh
                   position={[position[0], 0.05, position[2]]}
                   rotation={[-Math.PI / 2, 0, 0]}
                 >
-                  <circleGeometry args={[0.12, 32]} />
+                  <circleGeometry args={[0.08, 32]} />
                   <meshBasicMaterial
-                    color="#60a5fa"
+                    color="#10b981"
                     transparent
                     opacity={0.6}
                   />
+                  {/* Subtle outer glow for move */}
+                  <mesh position={[0, 0, -0.005]}>
+                    <ringGeometry args={[0.1, 0.12, 32]} />
+                    <meshBasicMaterial color="#10b981" transparent opacity={0.2} />
+                  </mesh>
                 </mesh>
               )}
             </group>

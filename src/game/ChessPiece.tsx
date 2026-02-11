@@ -15,7 +15,6 @@ interface ChessPieceProps {
   model: Group;
   position: [number, number, number];
   isSelected: boolean;
-  isValidMove: boolean;
   pieceKey: string; // 2. Add this prop
   onClick: () => void;
 }
@@ -24,7 +23,6 @@ export const ChessPiece = ({
   model,
   position,
   isSelected,
-  isValidMove,
   pieceKey, // 3. Destructure prop
   onClick,
 }: ChessPieceProps) => {
@@ -42,6 +40,24 @@ export const ChessPiece = ({
         child.receiveShadow = true;
         child.geometry.computeBoundingBox();
         child.geometry.computeBoundingSphere();
+
+        // Premium Material Override
+        if (child.material) {
+          // White pieces material
+          if (pieceKey.startsWith("w_")) {
+            child.material = child.material.clone() as any;
+            child.material.color.set("#ffffff");
+            child.material.metalness = 0.2;
+            child.material.roughness = 0.1;
+          }
+          // Black pieces material
+          else if (pieceKey.startsWith("b_")) {
+            child.material = child.material.clone() as any;
+            child.material.color.set("#1a1a1a");
+            child.material.metalness = 0.4;
+            child.material.roughness = 0.3;
+          }
+        }
       }
     });
 
@@ -124,20 +140,6 @@ export const ChessPiece = ({
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      {isSelected && (
-        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.25, 0.35, 32]} />
-          <meshBasicMaterial color="#4ade80" transparent opacity={0.6} />
-        </mesh>
-      )}
-
-      {isValidMove && (
-        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.15, 32]} />
-          <meshBasicMaterial color="#60a5fa" transparent opacity={0.5} />
-        </mesh>
-      )}
-
       {clonedModel && <primitive object={clonedModel} />}
     </group>
   );

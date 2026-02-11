@@ -1,11 +1,40 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap');
 
-.loginbtn {
-    @apply bg-white/50 rounded-2xl p-1 pl-2;
+:root {
+    --premium-gold: #c5a059;
+    --premium-dark: #0f172a;
+    --premium-glass: rgba(15, 23, 42, 0.7);
+    --premium-border: rgba(255, 255, 255, 0.1);
 }
 
-.btn {
-    @apply bg-blue-500 rounded-2xl font-bold cursor-pointer hover:scale-110 transition-all duration-75 hover:bg-blue-700;
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--premium-dark);
+}
+
+h1, h2, h3, .font-premium {
+    font-family: 'Outfit', sans-serif;
+}
+
+.loginbtn {
+    @apply bg-white/10 backdrop-blur-md rounded-xl p-2 pl-4 pr-4 border border-white/20 transition-all hover:bg-white/20;
+}
+
+.btn-premium {
+    @apply relative overflow-hidden px-8 py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg;
+}
+
+.btn-primary {
+    @apply bg-linear-to-r from-blue-600 to-indigo-700 text-white shadow-blue-500/20 hover:shadow-blue-500/40;
+}
+
+.btn-secondary {
+    @apply bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20;
+}
+
+.glass-panel {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-10 shadow-2xl;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -22,4 +51,14 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-white/30;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.animate-float {
+    animation: float 4s ease-in-out infinite;
 }

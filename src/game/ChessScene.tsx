@@ -20,22 +20,22 @@ const squareToPosition = (
 // Convert chess.js piece to key
 const pieceKey = (piece: Piece) =>
   `${piece.color}_${piece.type}` as
-    | "w_p"
-    | "w_r"
-    | "w_n"
-    | "w_b"
-    | "w_q"
-    | "w_k"
-    | "b_p"
-    | "b_r"
-    | "b_n"
-    | "b_b"
-    | "b_q"
-    | "b_k";
+  | "w_p"
+  | "w_r"
+  | "w_n"
+  | "w_b"
+  | "w_q"
+  | "w_k"
+  | "b_p"
+  | "b_r"
+  | "b_n"
+  | "b_b"
+  | "b_q"
+  | "b_k";
 
 export const ChessScene = () => {
   const { scene } = ChessModel();
-  const { chess, selectedSquare, validMoves, selectSquare } = useGameStore();
+  const { chess, selectedSquare, selectSquare } = useGameStore();
   const boardRef = useRef<Group>(null);
 
   // Clone board and hide pieces in GLTF
@@ -118,7 +118,6 @@ export const ChessScene = () => {
               model={model}
               position={pos}
               isSelected={selectedSquare === square}
-              isValidMove={validMoves.includes(square)}
               pieceKey={key} // <--- ADD THIS LINE
               onClick={() => selectSquare(square)}
             />
