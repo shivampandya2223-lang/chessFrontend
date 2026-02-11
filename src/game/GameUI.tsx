@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGameStore } from "../store/gameStore";
 import { useSocketStore } from "../store/socketStore";
 import { useNavigate } from "react-router-dom";
@@ -7,10 +7,19 @@ import { socketActions } from "../socket/socketActions";
 export const GameUI = () => {
   const { currentTurn, gameStatus, resetGame, chatMessages } = useGameStore();
   const { currentRoom } = useSocketStore();
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
 
   const [message, setMessage] = useState("");
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
 
   const handleMessageClick = () => {
     if (!message.trim() || !currentRoom?.roomId) return;
@@ -71,6 +80,7 @@ export const GameUI = () => {
               No messages yet.
             </div>
           )}
+          <div ref={chatEndRef} />
         </div>
 
         <div className="flex items-center gap-2">

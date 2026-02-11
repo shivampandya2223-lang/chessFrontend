@@ -8,6 +8,10 @@ import { isLoggedIn } from "./auth";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const useSocket = () => {
+  const token = localStorage.getItem("token");
+  const myUserId = localStorage.getItem("userId");
+  const myUsername = localStorage.getItem("username");
+
   const {
     setConnected,
     setOnlineUsers,
@@ -23,9 +27,6 @@ export const useSocket = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const myUserId = localStorage.getItem("userId");
-
     // 1. Clean and Handle Token
     let cleanToken = token?.trim() || "";
     if (cleanToken.startsWith("Bearer ")) {
@@ -57,11 +58,11 @@ export const useSocket = () => {
         "🔄 [Socket Debug] New token detected. Reconnecting with fresh auth...",
       );
       socket.disconnect();
-      socket.auth = { token: cleanToken };
+      socket.auth = { token: cleanToken, userId: myUserId, username: myUsername };
       socket.connect();
     } else if (!socket.connected && cleanToken) {
       console.log("📡 [Socket Debug] Initializing connection...");
-      socket.auth = { token: cleanToken };
+      socket.auth = { token: cleanToken, userId: myUserId, username: myUsername };
       socket.connect();
     }
 
@@ -87,32 +88,43 @@ export const useSocket = () => {
     socket.on("connect_error", handleConnectError);
 
     // Online users
-    socket.on(SOCKET_EVENT.ONLINE_USERS, (userIds: any[]) => {
-      if (!Array.isArray(userIds)) return;
-      const users: OnlineUser[] = userIds
-        .filter((id) => id && typeof id === "string")
-        .map((id) => ({
-          userId: id,
-          username:
-            id === myUserId
-              ? localStorage.getItem("username") || "Me"
-              : `${id.substring(0, 100)}`,
+    socket.on(SOCKET_EVENT.ONLINE_USERS, (users: any[]) => {
+      console.log("👥 [Socket Debug] Raw Online Users Event:", users);
+      if (!Array.isArray(users)) return;
+
+      const onlineUsers: OnlineUser[] = users
+        .filter((user) => user && typeof user === "object" && user.userId)
+        .map((user) => ({
+          userId: user.userId,
+          username: user.username || user.userId,
           isOnline: true,
         }));
-      setOnlineUsers(users);
+
+      console.log("👥 [Socket Debug] Processed Online Users:", onlineUsers);
+      setOnlineUsers(onlineUsers);
     });
 
     // Game request received
     socket.on(SOCKET_EVENT.GAME_REQUEST_RECEIVED, (request: any) => {
-      console.log("📨 [Socket Debug] New request:", request);
+      console.log("📨 [Socket Debug] New request received:", request);
+
+      const myUsername = localStorage.getItem("username") || "Me";
+
       addGameRequest({
         requestId: request.requestId,
         fromUserId: request.fromUserId,
         fromUsername: request.fromUsername,
         toUserId: myUserId || "",
-        toUsername: localStorage.getItem("username") || "",
+        toUsername: myUsername,
         createdAt: request.createdAt,
       });
+
+      console.log("✅ [Socket Debug] Request added to store");
+    });
+
+    socket.on(SOCKET_EVENT.GAME_REQUEST_DECLINED, (data: any) => {
+      console.log("❌ [Socket Debug] Game request declined by:", data.by);
+      // Optional: Show toast or notification
     });
 
     // Game started
@@ -251,6 +263,9 @@ export const useSocket = () => {
     };
   }, [
     location.pathname,
+    token,
+    myUserId,
+    myUsername,
     setConnected,
     setOnlineUsers,
     addGameRequest,

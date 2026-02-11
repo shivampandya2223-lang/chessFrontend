@@ -48,12 +48,14 @@ const Hero = () => {
         onSuccess: (res: any) => {
           console.log("Room created API response:", res.data);
 
-          // Get the toUserId from the response (check common field names)
+          // Get the toUserId from the response
           const room = res.data.room || res.data;
-          const toUserId = room.opponentId || room.apponentId || room.id;
+          const toUserId = room.opponentId;
 
           // Send a challenge request via socket so the opponent gets a notification
-          socketActions.sendGameRequest(toUserId);
+          if (toUserId) {
+            socketActions.sendGameRequest(toUserId);
+          }
 
           navigate("/game");
 

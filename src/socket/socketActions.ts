@@ -8,13 +8,37 @@ export const socketActions = {
   },
 
   sendGameRequest: (toUserId: string) => {
-    console.log("♟️ [Socket] Sending game request to:", toUserId);
-    socket.emit(SOCKET_EVENT.SEND_GAME_REQUEST, { toUserId });
+    const fromUserId = localStorage.getItem("userId");
+    const fromUsername = localStorage.getItem("username");
+
+    if (!socket.connected) {
+      console.error("❌ [Socket] Cannot send request - socket not connected!");
+      alert("Connection error. Please refresh the page and try again.");
+      return;
+    }
+
+    console.log("♟️ [Socket] Sending game request to:", toUserId, "from:", fromUsername);
+    console.log("♟️ [Socket] Socket connected:", socket.connected, "Socket ID:", socket.id);
+
+    socket.emit(SOCKET_EVENT.SEND_GAME_REQUEST, {
+      toUserId,
+      fromUserId,
+      fromUsername
+    });
   },
 
   acceptGameRequest: (fromUserId: string) => {
+    const myUserId = localStorage.getItem("userId");
+    const myUsername = localStorage.getItem("username");
+
     console.log("✅ [Socket] Accepting game request from:", fromUserId);
-    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, { fromUserId });
+    console.log("✅ [Socket] My info:", { myUserId, myUsername });
+
+    socket.emit(SOCKET_EVENT.ACCEPT_GAME_REQUEST, {
+      fromUserId,
+      myUserId,
+      myUsername
+    });
   },
 
   declineGameRequest: (fromUserId: string) => {
@@ -26,9 +50,9 @@ export const socketActions = {
     console.log("🏹 [Socket] Making move in room:", roomId, move);
     socket.emit(SOCKET_EVENT.MOVE, { roomId, move });
   },
-  sendMessage:(roomId:string,message:string)=>{
-    console.log("💬 user send message",roomId ,"this is meesage:",message);
-    socket.emit(SOCKET_EVENT.GAME_MESSAGE,{roomId,message});
+  sendMessage: (roomId: string, message: string) => {
+    console.log("💬 user send message", roomId, "this is meesage:", message);
+    socket.emit(SOCKET_EVENT.GAME_MESSAGE, { roomId, message });
   }
 };
 

@@ -31,13 +31,18 @@ const Navbar = () => {
   };
 
   const handleGroupClick = () => {
-    if (isLoggedIn()) {
-      if (gameRequests.length > 0 && !showOnlineUsers) {
-        setShowRequests(!showRequests);
-      } else {
-        setShowOnlineUsers(!showOnlineUsers);
-        setShowRequests(false);
-      }
+    if (!isLoggedIn()) return;
+
+    if (showOnlineUsers || showRequests) {
+      setShowOnlineUsers(false);
+      setShowRequests(false);
+      return;
+    }
+
+    if (gameRequests.length > 0) {
+      setShowRequests(true);
+    } else {
+      setShowOnlineUsers(true);
     }
   };
 

@@ -12,8 +12,14 @@ export const OnlineUsersModal = ({
   const { onlineUsers } = useSocketStore();
   const currentUserName = localStorage.getItem("username");
 
-  const handleSendRequest = (toUserId: string) => {
+  const handleSendRequest = (toUserId: string, toUsername: string) => {
+    console.log("🎯 [Challenge] Sending request to:", { toUserId, toUsername });
+    console.log("🎯 [Challenge] From:", {
+      userId: localStorage.getItem("userId"),
+      username: localStorage.getItem("username"),
+    });
     socketActions.sendGameRequest(toUserId);
+    console.log("✅ [Challenge] Request sent via socket");
   };
 
   if (!isOpen) return null;
@@ -68,7 +74,7 @@ export const OnlineUsersModal = ({
                     </div>
 
                     <button
-                      onClick={() => handleSendRequest(user.userId)}
+                      onClick={() => handleSendRequest(user.userId, user.username)}
                       className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2"
                     >
                       <FaGamepad /> Challenge
