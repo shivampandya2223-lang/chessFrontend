@@ -25,6 +25,10 @@ export const socketActions = {
   makeMove: (roomId: string, move: any) => {
     console.log("🏹 [Socket] Making move in room:", roomId, move);
     socket.emit(SOCKET_EVENT.MOVE, { roomId, move });
+  },
+  sendMessage:(roomId:string,message:string)=>{
+    console.log("💬 user send message",roomId ,"this is meesage:",message);
+    socket.emit(SOCKET_EVENT.GAME_MESSAGE,{roomId,message});
   }
 };
 

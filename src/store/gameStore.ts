@@ -18,9 +18,11 @@ interface GameState {
   moveHistory: string[];
   lastMove: { from: Square; to: Square } | null;
   inCheck: boolean;
+  chatMessages: { sender: string; message: string }[];
 
   // Actions
   setPlayerColor: (color: "w" | "b" | null) => void;
+  addChatMessage: (message: { sender: string; message: string }) => void;
   selectSquare: (square: Square) => void;
   makeMove: (from: Square, to: Square) => void;
   updateGameState: (data: { fen: string; turn: "w" | "b"; status: GameStatus; move?: any }) => void;
@@ -39,7 +41,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastMove: null,
   inCheck: false,
 
+  chatMessages: [],
+
   setPlayerColor: (color) => set({ playerColor: color }),
+
+  addChatMessage: (message) => set((state) => ({ chatMessages: [...state.chatMessages, message] })),
 
   selectSquare: (square) => {
     const { chess, selectedSquare, playerColor, gameStatus } = get();
@@ -143,6 +149,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       moveHistory: [],
       lastMove: null,
       inCheck: false,
+      chatMessages: [],
     });
   },
 }));

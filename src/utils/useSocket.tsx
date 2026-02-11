@@ -15,7 +15,7 @@ export const useSocket = () => {
     clearRequests,
   } = useSocketStore();
 
-  const { updateGameState, setPlayerColor } = useGameStore();
+  const { updateGameState, setPlayerColor, addChatMessage } = useGameStore();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -182,6 +182,19 @@ export const useSocket = () => {
       console.log("🏁 [Socket Debug] Game ended:", data);
     });
 
+    socket.on(SOCKET_EVENT.GAME_MESSAGE, (data: any) => {
+      console.log("💬 [Socket Debug] Message received:", data);
+
+      // Handle the specific payload structure { userId, username, text, time }
+      const sender = data.username || data.sender || "Opponent";
+      const message = data.text || data.message || (typeof data === 'string' ? data : JSON.stringify(data));
+
+      addChatMessage({
+        sender,
+        message,
+      });
+    });
+
     return () => {
       socket.off(SOCKET_EVENT.CONNECT, handleConnect);
       socket.off(SOCKET_EVENT.DISCONNECT, handleDisconnect);
@@ -192,8 +205,9 @@ export const useSocket = () => {
       socket.off(SOCKET_EVENT.GAME_REJOIN);
       socket.off(SOCKET_EVENT.MOVE);
       socket.off(SOCKET_EVENT.GAME_END);
+      socket.off(SOCKET_EVENT.GAME_MESSAGE);
     };
-  }, [location.pathname, setConnected, setOnlineUsers, addGameRequest, setCurrentRoom, clearRequests, navigate, updateGameState, setPlayerColor]);
+  }, [location.pathname, setConnected, setOnlineUsers, addGameRequest, setCurrentRoom, clearRequests, navigate, updateGameState, setPlayerColor, addChatMessage]);
 
   return socket;
 };

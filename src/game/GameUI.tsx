@@ -1,10 +1,23 @@
+import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
+import { useSocketStore } from "../store/socketStore";
 import { useNavigate } from "react-router-dom";
+import { socketActions } from "../socket/socketActions";
 
 export const GameUI = () => {
-  const { currentTurn, gameStatus, resetGame } = useGameStore();
+  const { currentTurn, gameStatus, resetGame, chatMessages } = useGameStore();
+  const { currentRoom } = useSocketStore();
 
   const navigate = useNavigate();
+
+  const [message, setMessage] = useState("");
+
+  const handleMessageClick = () => {
+    if (!message.trim() || !currentRoom?.roomId) return;
+    console.log("THIS IS USER MESSAGE:->", message);
+    socketActions.sendMessage(currentRoom.roomId, message);
+    setMessage("");
+  };
 
   const getStatusMessage = () => {
     if (gameStatus === "checkmate") {
@@ -36,6 +49,42 @@ export const GameUI = () => {
         >
           New Game
         </button>
+      </div>
+      <div className="absolute bottom-6 right-6 w-96 bg-gray-800/90 backdrop-blur-md p-4 rounded-xl shadow-lg pointer-events-auto flex flex-col gap-2">
+        <div className="h-48 overflow-y-auto flex flex-col gap-2 mb-2 pr-2 custom-scrollbar">
+          {chatMessages.map((msg, i) => (
+            <div
+              key={i}
+              className="text-sm wrap-break-word bg-white/5 p-2 rounded-lg"
+            >
+              <span className="font-bold text-blue-400">{msg.sender}:</span>
+              <span className="text-gray-200 ml-2">{msg.message}</span>
+            </div>
+          ))}
+          {chatMessages.length === 0 && (
+            <div className="text-white/30 text-center text-sm py-4">
+              No messages yet.
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            placeholder="Type a message..."
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleMessageClick()}
+            className="flex-1 bg-gray-700/50 text-white h-10 rounded-lg px-3 focus:outline-hidden focus:ring-2 focus:ring-blue-500 border border-white/10"
+          />
+          <button
+            className="h-10 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleMessageClick}
+            disabled={!message.trim()}
+          >
+            Send
+          </button>
+        </div>
       </div>
 
       {/* GAME OVER OVERLAY */}

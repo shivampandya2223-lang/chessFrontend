@@ -14,6 +14,9 @@ export const SOCKET_EVENT = {
     DECLINE_GAME_REQUEST: "game:request:decline",
     GAME_REQUEST_DECLINED: "game:request:declined",
 
+    //send message
+    GAME_MESSAGE:"game:message",
+
     // Game room / play
     GAME_START: "game:start",
     MOVE: "game:move",
