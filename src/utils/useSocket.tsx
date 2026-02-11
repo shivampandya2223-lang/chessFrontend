@@ -15,7 +15,7 @@ export const useSocket = () => {
     clearRequests,
   } = useSocketStore();
 
-  const { updateGameState, setPlayerColor, addChatMessage } = useGameStore();
+  const { updateGameState, setPlayerColor, addChatMessage, setChatMessages } = useGameStore();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -133,6 +133,18 @@ export const useSocket = () => {
         status: "playing"
       });
 
+      // 3. Sync chat history if available
+      if (Array.isArray(data.messages)) {
+        console.log("💬 [Socket Debug] Syncing chat history:", data.messages);
+        setChatMessages(data.messages.map((msg: any) => ({
+          sender: msg.username || msg.sender || "Opponent",
+          message: msg.text || msg.message || (typeof msg === 'string' ? msg : JSON.stringify(msg)),
+          timestamp: msg.time || Date.now()
+        })));
+      } else {
+        setChatMessages([]);
+      }
+
       clearRequests();
       navigate("/game");
     });
@@ -159,6 +171,16 @@ export const useSocket = () => {
         turn: data.turn || (data.fen.split(" ")[1] as "w" | "b"),
         status: data.status as any
       });
+
+      // 3. Sync chat history if available
+      if (Array.isArray(data.messages)) {
+        console.log("💬 [Socket Debug] Syncing chat history:", data.messages);
+        setChatMessages(data.messages.map((msg: any) => ({
+          sender: msg.username || msg.sender || "Opponent",
+          message: msg.text || msg.message || (typeof msg === 'string' ? msg : JSON.stringify(msg)),
+          timestamp: msg.time || Date.now()
+        })));
+      }
 
       navigate("/game");
     });
@@ -188,10 +210,12 @@ export const useSocket = () => {
       // Handle the specific payload structure { userId, username, text, time }
       const sender = data.username || data.sender || "Opponent";
       const message = data.text || data.message || (typeof data === 'string' ? data : JSON.stringify(data));
+      const timestamp = data.time || Date.now();
 
       addChatMessage({
         sender,
         message,
+        timestamp,
       });
     });
 
@@ -207,7 +231,7 @@ export const useSocket = () => {
       socket.off(SOCKET_EVENT.GAME_END);
       socket.off(SOCKET_EVENT.GAME_MESSAGE);
     };
-  }, [location.pathname, setConnected, setOnlineUsers, addGameRequest, setCurrentRoom, clearRequests, navigate, updateGameState, setPlayerColor, addChatMessage]);
+  }, [location.pathname, setConnected, setOnlineUsers, addGameRequest, setCurrentRoom, clearRequests, navigate, updateGameState, setPlayerColor, addChatMessage, setChatMessages]);
 
   return socket;
 };

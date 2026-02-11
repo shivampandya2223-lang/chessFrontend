@@ -57,8 +57,13 @@ export const GameUI = () => {
               key={i}
               className="text-sm wrap-break-word bg-white/5 p-2 rounded-lg"
             >
-              <span className="font-bold text-blue-400">{msg.sender}:</span>
-              <span className="text-gray-200 ml-2">{msg.message}</span>
+              <div className="flex justify-between items-baseline mb-1">
+                <span className="font-bold text-blue-400">{msg.sender}:</span>
+                <span className="text-[10px] text-gray-400">
+                  {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                </span>
+              </div>
+              <span className="text-gray-200">{msg.message}</span>
             </div>
           ))}
           {chatMessages.length === 0 && (
