@@ -10,17 +10,16 @@ export const OnlineUsersModal = ({
   onClose: () => void;
 }) => {
   const { onlineUsers } = useSocketStore();
-  const currentUserId = localStorage.getItem("userId");
+  const currentUserName = localStorage.getItem("username");
 
   const handleSendRequest = (toUserId: string) => {
     socketActions.sendGameRequest(toUserId);
   };
 
-
   if (!isOpen) return null;
 
   const otherUsers = onlineUsers.filter(
-    (user) => user.userId !== currentUserId && user.isOnline,
+    (user) => user.username !== currentUserName && user.isOnline,
   );
 
   return (

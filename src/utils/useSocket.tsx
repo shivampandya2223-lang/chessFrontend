@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from "react";
 import { socket } from "../socket/socket";
 import { SOCKET_EVENT } from "../socket/event";
@@ -15,7 +16,8 @@ export const useSocket = () => {
     clearRequests,
   } = useSocketStore();
 
-  const { updateGameState, setPlayerColor, addChatMessage, setChatMessages } = useGameStore();
+  const { updateGameState, setPlayerColor, addChatMessage, setChatMessages } =
+    useGameStore();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,7 +36,7 @@ export const useSocket = () => {
       path: location.pathname,
       isLoggedIn: isLoggedIn(),
       hasToken: !!cleanToken,
-      socketStatus: socket.connected ? "Connected" : "Disconnected"
+      socketStatus: socket.connected ? "Connected" : "Disconnected",
     });
 
     // 2. Handle Logout/Unauthorized state
@@ -51,7 +53,9 @@ export const useSocket = () => {
     const currentSocketToken = socket.auth && (socket.auth as any).token;
 
     if (cleanToken && cleanToken !== currentSocketToken) {
-      console.log("🔄 [Socket Debug] New token detected. Reconnecting with fresh auth...");
+      console.log(
+        "🔄 [Socket Debug] New token detected. Reconnecting with fresh auth...",
+      );
       socket.disconnect();
       socket.auth = { token: cleanToken };
       socket.connect();
@@ -86,13 +90,14 @@ export const useSocket = () => {
     socket.on(SOCKET_EVENT.ONLINE_USERS, (userIds: any[]) => {
       if (!Array.isArray(userIds)) return;
       const users: OnlineUser[] = userIds
-        .filter(id => id && typeof id === "string")
-        .map(id => ({
+        .filter((id) => id && typeof id === "string")
+        .map((id) => ({
           userId: id,
-          username: id === myUserId
-            ? (localStorage.getItem("username") || "Me")
-            : `User ${id.substring(0, 4)}`,
-          isOnline: true
+          username:
+            id === myUserId
+              ? localStorage.getItem("username") || "Me"
+              : `${id.substring(0, 100)}`,
+          isOnline: true,
         }));
       setOnlineUsers(users);
     });
@@ -123,24 +128,29 @@ export const useSocket = () => {
         creatorUsername: data.white === myUserId ? "Me" : "Opponent",
         opponentId: data.black,
         apponentUsername: data.black === myUserId ? "Me" : "Opponent",
-        status: "active"
+        status: "active",
       });
 
       // Sync the board state using backend FEN
       updateGameState({
         fen: data.fen,
         turn: data.fen.split(" ")[1] as "w" | "b",
-        status: "playing"
+        status: "playing",
       });
 
       // 3. Sync chat history if available
       if (Array.isArray(data.messages)) {
         console.log("💬 [Socket Debug] Syncing chat history:", data.messages);
-        setChatMessages(data.messages.map((msg: any) => ({
-          sender: msg.username || msg.sender || "Opponent",
-          message: msg.text || msg.message || (typeof msg === 'string' ? msg : JSON.stringify(msg)),
-          timestamp: msg.time || Date.now()
-        })));
+        setChatMessages(
+          data.messages.map((msg: any) => ({
+            sender: msg.username || msg.sender || "Opponent",
+            message:
+              msg.text ||
+              msg.message ||
+              (typeof msg === "string" ? msg : JSON.stringify(msg)),
+            timestamp: msg.time || Date.now(),
+          })),
+        );
       } else {
         setChatMessages([]);
       }
@@ -162,24 +172,29 @@ export const useSocket = () => {
         creatorUsername: data.white === myUserId ? "Me" : "Opponent",
         opponentId: data.black,
         apponentUsername: data.black === myUserId ? "Me" : "Opponent",
-        status: data.status === "playing" ? "active" : "finished"
+        status: data.status === "playing" ? "active" : "finished",
       });
 
       // Sync the board state
       updateGameState({
         fen: data.fen,
         turn: data.turn || (data.fen.split(" ")[1] as "w" | "b"),
-        status: data.status as any
+        status: data.status as any,
       });
 
       // 3. Sync chat history if available
       if (Array.isArray(data.messages)) {
         console.log("💬 [Socket Debug] Syncing chat history:", data.messages);
-        setChatMessages(data.messages.map((msg: any) => ({
-          sender: msg.username || msg.sender || "Opponent",
-          message: msg.text || msg.message || (typeof msg === 'string' ? msg : JSON.stringify(msg)),
-          timestamp: msg.time || Date.now()
-        })));
+        setChatMessages(
+          data.messages.map((msg: any) => ({
+            sender: msg.username || msg.sender || "Opponent",
+            message:
+              msg.text ||
+              msg.message ||
+              (typeof msg === "string" ? msg : JSON.stringify(msg)),
+            timestamp: msg.time || Date.now(),
+          })),
+        );
       }
 
       navigate("/game");
@@ -195,7 +210,7 @@ export const useSocket = () => {
           fen: data.fen,
           turn: data.turn || (data.fen.split(" ")[1] as "w" | "b"),
           status: data.status,
-          move: data.move // Pass the move info to highlight start/end squares
+          move: data.move, // Pass the move info to highlight start/end squares
         });
       }
     });
@@ -209,7 +224,10 @@ export const useSocket = () => {
 
       // Handle the specific payload structure { userId, username, text, time }
       const sender = data.username || data.sender || "Opponent";
-      const message = data.text || data.message || (typeof data === 'string' ? data : JSON.stringify(data));
+      const message =
+        data.text ||
+        data.message ||
+        (typeof data === "string" ? data : JSON.stringify(data));
       const timestamp = data.time || Date.now();
 
       addChatMessage({
@@ -231,7 +249,19 @@ export const useSocket = () => {
       socket.off(SOCKET_EVENT.GAME_END);
       socket.off(SOCKET_EVENT.GAME_MESSAGE);
     };
-  }, [location.pathname, setConnected, setOnlineUsers, addGameRequest, setCurrentRoom, clearRequests, navigate, updateGameState, setPlayerColor, addChatMessage, setChatMessages]);
+  }, [
+    location.pathname,
+    setConnected,
+    setOnlineUsers,
+    addGameRequest,
+    setCurrentRoom,
+    clearRequests,
+    navigate,
+    updateGameState,
+    setPlayerColor,
+    addChatMessage,
+    setChatMessages,
+  ]);
 
   return socket;
 };
