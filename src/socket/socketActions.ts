@@ -42,6 +42,13 @@ export const socketActions = {
       gameId
     });
   },
+  leaveGame : (roomId:string,username:string)=>{
+    console.log(`${roomId} in this game ${username} was leave 😭😭😭`);
+    socket.emit(SOCKET_EVENT.GAME_LEAVE,{
+      roomId,
+      username
+    });
+  },
 
   declineGameRequest: (fromUserId: string) => {
     console.log("❌ [Socket] Declining game request from:", fromUserId);
@@ -74,6 +81,6 @@ export const registerSocketListeners = ({
   if (onOnlineUsers) socket.on(SOCKET_EVENT.ONLINE_USERS, onOnlineUsers);
   if (onGameStart) socket.on(SOCKET_EVENT.GAME_START, onGameStart);
   if (onGameMove) socket.on(SOCKET_EVENT.MOVE, onGameMove);
-  if (onGameEnd) socket.on(SOCKET_EVENT.GAME_END, onGameEnd);
+  if (onGameEnd) socket.on(SOCKET_EVENT.GAME_LEAVE, onGameEnd);
   if (onGameRejoin) socket.on(SOCKET_EVENT.GAME_REJOIN, onGameRejoin);
 };

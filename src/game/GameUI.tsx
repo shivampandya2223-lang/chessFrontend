@@ -9,6 +9,7 @@ import {
   FaPaperPlane,
   FaChessBoard,
   FaCircle,
+  FaDoorOpen,
 } from "react-icons/fa";
 
 export const GameUI = () => {
@@ -98,6 +99,21 @@ export const GameUI = () => {
         >
           <FaRedo size={18} />
         </button>
+        <button
+          onClick={() => {
+            if (currentRoom?.roomId && localStorage.getItem("username")) {
+              socketActions.leaveGame(
+                currentRoom.roomId,
+                localStorage.getItem("username")!
+              );
+            }
+            navigate("/");
+          }}
+          className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-red-500/60 hover:text-red-500 hover:bg-red-500/10 hover:scale-105 transition-all shadow-xl"
+          title="Leave Game"
+        >
+          <FaDoorOpen size={20} />
+        </button>
       </div>
 
       {/* CHAT PANEL (Bottom Right) */}
@@ -130,9 +146,9 @@ export const GameUI = () => {
                 <span className="text-[8px] text-white/30">
                   {msg.timestamp
                     ? new Date(msg.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
                     : ""}
                 </span>
               </div>
@@ -216,6 +232,20 @@ export const GameUI = () => {
                 className="btn-premium btn-secondary py-4 text-base"
               >
                 RETURN HOME
+              </button>
+              <button
+                onClick={() => {
+                  if (currentRoom?.roomId && localStorage.getItem("username")) {
+                    socketActions.leaveGame(
+                      currentRoom.roomId,
+                      localStorage.getItem("username")!
+                    );
+                  }
+                  navigate("/");
+                }}
+                className="btn-leave btn-secondary py-4 text-base"
+              >
+                LEAVE THIS GAME
               </button>
             </div>
           </div>

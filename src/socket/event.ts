@@ -15,11 +15,12 @@ export const SOCKET_EVENT = {
     GAME_REQUEST_DECLINED: "game:request:declined",
 
     //send message
-    GAME_MESSAGE:"game:message",
+    GAME_MESSAGE: "game:message",
 
     // Game room / play
     GAME_START: "game:start",
     MOVE: "game:move",
     GAME_END: "game:end",
+    GAME_LEAVE: "game:leave",
     GAME_REJOIN: "game:rejoin",
 };

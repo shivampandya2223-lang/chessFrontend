@@ -6,6 +6,8 @@ import { useSocketStore, type OnlineUser } from "../store/socketStore";
 import { useGameStore } from "../store/gameStore";
 import { isLoggedIn } from "./auth";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
 
 export const useSocket = () => {
   const token = localStorage.getItem("token");
@@ -232,6 +234,34 @@ export const useSocket = () => {
       console.log("🏁 [Socket Debug] Game ended:", data);
     });
 
+    socket.on(SOCKET_EVENT.GAME_LEAVE, (data: any) => {
+      console.log("🏃 [Socket Debug] Player left:", data);
+
+      // Only show the toast if I am NOT the one who left
+      if (data.by !== myUsername) {
+        const message = data.message || "The opponent has left the game.";
+        toast.error(message, {
+          duration: 5000,
+          icon: "🏃",
+          style: {
+            borderRadius: "20px",
+            background: "#1e293b",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.2)",
+            padding: "24px 32px",
+            fontSize: "18px",
+            fontWeight: "bold",
+            minWidth: "400px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+          },
+        });
+      }
+
+      updateGameState({
+        status: "finished",
+      } as any);
+    });
+
     socket.on(SOCKET_EVENT.GAME_MESSAGE, (data: any) => {
       console.log("💬 [Socket Debug] Message received:", data);
 
@@ -260,6 +290,7 @@ export const useSocket = () => {
       socket.off(SOCKET_EVENT.GAME_REJOIN);
       socket.off(SOCKET_EVENT.MOVE);
       socket.off(SOCKET_EVENT.GAME_END);
+      socket.off(SOCKET_EVENT.GAME_LEAVE);
       socket.off(SOCKET_EVENT.GAME_MESSAGE);
     };
   }, [
