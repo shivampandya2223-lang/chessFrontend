@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSocketStore } from "../store/socketStore";
 import { socketActions } from "../socket/socketActions";
 import { FaGamepad, FaTimes, FaCircle } from "react-icons/fa";
+import { useCreateRoomMutation } from "../queries/game.queries";
 
 export const OnlineUsersModal = ({
   isOpen,
@@ -9,14 +11,37 @@ export const OnlineUsersModal = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
+  const { mutate: createRoom } = useCreateRoomMutation();
   const { onlineUsers } = useSocketStore();
   const currentUserName = localStorage.getItem("username");
 
   const handleSendRequest = (toUserId: string, toUsername: string) => {
-    console.log("🎯 [Challenge] Sending request to:", { toUserId, toUsername });
-    socketActions.sendGameRequest(toUserId);
-    // Optionally close after sending
-    // onClose();
+    console.log("🎯 [Challenge] Creating room for:", { toUserId, toUsername });
+
+    createRoom(
+      { opponentUsername: toUsername },
+      {
+        onSuccess: (res: any) => {
+          const room = res.data.room || res.data;
+          const gameId = room.gameId || room.id;
+
+          console.log("✅ [Challenge] Room created:", gameId);
+
+          // Store gameId in localStorage
+          if (gameId) {
+            localStorage.setItem("gameId", gameId);
+          }
+
+          if (gameId) {
+            socketActions.sendGameRequest(toUserId, gameId);
+          }
+        },
+        onError: (err: any) => {
+          console.error("❌ [Challenge] Failed to create room:", err);
+          alert("Could not start game. The player might not be available.");
+        },
+      },
+    );
   };
 
   if (!isOpen) return null;

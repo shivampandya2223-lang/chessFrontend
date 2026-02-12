@@ -7,15 +7,14 @@ export const GameRequestsPopup = () => {
   const { gameRequests } = useSocketStore();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleAccept = (fromUserId: string) => {
-    socketActions.acceptGameRequest(fromUserId);
+  const handleAccept = (fromUserId: string, gameId: string) => {
+    socketActions.acceptGameRequest(fromUserId, gameId);
     setIsOpen(false);
   };
 
   const handleReject = (fromUserId: string) => {
     socketActions.declineGameRequest(fromUserId);
   };
-
 
   if (gameRequests.length === 0) return null;
 
@@ -72,7 +71,10 @@ export const GameRequestsPopup = () => {
         </div>
       )}
 
-      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 hover:bg-white/10 rounded-full transition">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 hover:bg-white/10 rounded-full transition"
+      >
         <RiGroupFill className="text-white text-xl" />
       </button>
     </div>

@@ -51,9 +51,16 @@ const Hero = () => {
       {
         onSuccess: (res: any) => {
           const room = res.data.room || res.data;
+          const gameId = room.gameId || room.id;
           const toUserId = room.opponentId;
-          if (toUserId) {
-            socketActions.sendGameRequest(toUserId);
+
+          // Store gameId in localStorage
+          if (gameId) {
+            localStorage.setItem("gameId", gameId);
+          }
+
+          if (toUserId && gameId) {
+            socketActions.sendGameRequest(toUserId, gameId);
           }
           navigate("/game");
         },

@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 export interface GameRequest {
     requestId: string;
+    gameId: string;
     fromUserId: string;
     fromUsername: string;
     toUserId: string;

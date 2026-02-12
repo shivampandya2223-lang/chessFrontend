@@ -194,7 +194,7 @@ const GameRequestItem = ({
   onClose: () => void;
 }) => {
   const handleAccept = () => {
-    socketActions.acceptGameRequest(request.fromUserId);
+    socketActions.acceptGameRequest(request.fromUserId, request.gameId);
     onClose();
   };
 

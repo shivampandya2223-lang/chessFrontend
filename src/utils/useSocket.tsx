@@ -112,6 +112,7 @@ export const useSocket = () => {
 
       addGameRequest({
         requestId: request.requestId,
+        gameId: request.gameId, // Added gameId
         fromUserId: request.fromUserId,
         fromUsername: request.fromUsername,
         toUserId: myUserId || "",

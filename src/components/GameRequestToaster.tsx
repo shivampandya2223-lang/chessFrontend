@@ -27,7 +27,7 @@ export const GameRequestToaster = () => {
           <div className="flex gap-2">
             <button
               onClick={() => {
-                socketActions.acceptGameRequest(request.fromUserId);
+                socketActions.acceptGameRequest(request.fromUserId, request.gameId);
                 removeGameRequest(request.requestId);
               }}
               className="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2"
