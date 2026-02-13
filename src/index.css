@@ -64,3 +64,19 @@ h1, h2, h3, .font-premium {
 .animate-float {
     animation: float 4s ease-in-out infinite;
 }
+.chatbox {
+    position: relative;
+}
+
+.chatbox::before {
+    content: "hello";
+    position: absolute;
+    height: 120px;
+    width: 120px;
+    background-color: aqua;
+    color: aliceblue;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+}

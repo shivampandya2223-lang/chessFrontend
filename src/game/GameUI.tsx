@@ -10,18 +10,38 @@ import {
   FaChessBoard,
   FaCircle,
   FaDoorOpen,
+  FaChevronDown,
+  FaFacebookMessenger,
 } from "react-icons/fa";
+import gsap from "gsap";
 
 export const GameUI = () => {
   const { currentTurn, gameStatus, resetGame, chatMessages } = useGameStore();
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatref = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const [isShowChatbox, setIsSHowChatbox] = useState(false);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleChatBoxMove = () => {
+    setIsSHowChatbox(true);
+    gsap.to(chatref.current, {
+      y: 600,
+      ease: "circ.inOut",
+    });
+  };
+  const handleResetChatbox = () => {
+    gsap.to(chatref.current, {
+      y: 0,
+      ease: "circ.inOut",
+    });
+    setIsSHowChatbox(false);
   };
 
   useEffect(() => {
@@ -82,43 +102,71 @@ export const GameUI = () => {
           </div>
         </div>
       </div>
-
       {/* LEFT SIDEBAR (Actions) */}
       <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 pointer-events-auto">
-        <button
-          onClick={() => navigate("/")}
-          className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 hover:scale-105 transition-all shadow-xl group"
-          title="Back to Home"
-        >
-          <FaHome size={20} />
-        </button>
-        <button
-          onClick={resetGame}
-          className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-white/60 hover:text-green-400 hover:bg-white/10 hover:scale-105 transition-all shadow-xl"
-          title="New Game"
-        >
-          <FaRedo size={18} />
-        </button>
-        <button
-          onClick={() => {
-            if (currentRoom?.roomId && localStorage.getItem("username")) {
-              socketActions.leaveGame(
-                currentRoom.roomId,
-                localStorage.getItem("username")!
-              );
-            }
-            navigate("/");
-          }}
-          className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-red-500/60 hover:text-red-500 hover:bg-red-500/10 hover:scale-105 transition-all shadow-xl"
-          title="Leave Game"
-        >
-          <FaDoorOpen size={20} />
-        </button>
+        <div className="relative group">
+          <button
+            onClick={() => navigate("/")}
+            className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 hover:scale-105 transition-all shadow-xl group"
+          >
+            <FaHome size={20} />
+          </button>
+          <div className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-gray-400/80 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
+            BACK TO HOME
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={resetGame}
+            className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-white/60 hover:text-green-400 hover:bg-white/10 hover:scale-105 transition-all shadow-xl"
+            title="New Game"
+          >
+            <FaRedo size={18} />
+          </button>
+          <div className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-green-400/80 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
+            REMATCH
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() => {
+              if (currentRoom?.roomId && localStorage.getItem("username")) {
+                socketActions.leaveGame(
+                  currentRoom.roomId,
+                  localStorage.getItem("username")!,
+                );
+              }
+              navigate("/");
+            }}
+            className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-red-500/60 hover:text-red-500 hover:bg-red-500/10 hover:scale-105 transition-all shadow-xl"
+            title="Leave Game"
+          >
+            <FaDoorOpen size={20} />
+          </button>
+          <div className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-red-400/80 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
+            LEAVE THE ROOM
+          </div>
+        </div>
       </div>
 
       {/* CHAT PANEL (Bottom Right) */}
-      <div className="absolute bottom-10 right-10 w-87.5 bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col">
+      {isShowChatbox && (
+        <div className=" h-12 w-12 bottom-12 right-12 absolute flex items-center justify-center  bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl pointer-events-auto">
+          <button
+            onClick={handleResetChatbox}
+            className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:scale-105  transition-all "
+            title="Hide Chat"
+          >
+            <FaFacebookMessenger size={23} />
+          </button>
+        </div>
+      )}
+      <div
+        ref={chatref}
+        className="absolute bottom-10 right-10 w-87.5 bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col"
+      >
         <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+          {/* CHATBOX MOVE BUTTON */}
           <div className="flex items-center gap-2">
             <FaChessBoard className="text-blue-500" />
             <span className="text-xs font-bold text-white tracking-widest uppercase">
@@ -130,6 +178,15 @@ export const GameUI = () => {
             <span className="text-[10px] text-green-500 font-bold uppercase">
               Live
             </span>
+          </div>
+          <div className="">
+            <button
+              className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white transition-all"
+              title="Hide Chat"
+              onClick={handleChatBoxMove}
+            >
+              <FaChevronDown size={12} rotate={120} />
+            </button>
           </div>
         </div>
 
@@ -146,9 +203,9 @@ export const GameUI = () => {
                 <span className="text-[8px] text-white/30">
                   {msg.timestamp
                     ? new Date(msg.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                     : ""}
                 </span>
               </div>
@@ -238,7 +295,7 @@ export const GameUI = () => {
                   if (currentRoom?.roomId && localStorage.getItem("username")) {
                     socketActions.leaveGame(
                       currentRoom.roomId,
-                      localStorage.getItem("username")!
+                      localStorage.getItem("username")!,
                     );
                   }
                   navigate("/");
