@@ -20,33 +20,51 @@ export const GameUI = () => {
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatref = useRef<HTMLDivElement>(null);
+  const turnRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
-  const [isShowChatbox, setIsSHowChatbox] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const lastMessagesLength = useRef(chatMessages.length);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleChatBoxMove = () => {
-    setIsSHowChatbox(true);
+    setIsChatMinimized(true);
     gsap.to(chatref.current, {
       y: 600,
       ease: "circ.inOut",
     });
   };
+
   const handleResetChatbox = () => {
     gsap.to(chatref.current, {
       y: 0,
       ease: "circ.inOut",
     });
-    setIsSHowChatbox(false);
+    setIsChatMinimized(false);
+    setUnreadCount(0);
   };
-
   useEffect(() => {
+    gsap.to(turnRef.current, {
+      y: -50,
+      yoyo: true,
+      repeat: -1,
+      ease: "power2.inOut",
+    });
+  }, [currentTurn]);
+  useEffect(() => {
+    if (isChatMinimized && chatMessages.length > lastMessagesLength.current) {
+      setUnreadCount(
+        (prev) => prev + (chatMessages.length - lastMessagesLength.current),
+      );
+    }
+    lastMessagesLength.current = chatMessages.length;
     scrollToBottom();
-  }, [chatMessages]);
+  }, [chatMessages, isChatMinimized]);
 
   const handleMessageClick = () => {
     if (!message.trim() || !currentRoom?.roomId) return;
@@ -148,15 +166,27 @@ export const GameUI = () => {
           </div>
         </div>
       </div>
-
+      {currentTurn && (
+        <div
+          ref={turnRef}
+          className="bottom-14 left-10 flex absolute  bg-blue-500/30 h-12 w-32 rounded-2xl items-center text-center justify-center text-white font-bold "
+        >
+          YOUR TURN
+        </div>
+      )}
       {/* CHAT PANEL (Bottom Right) */}
-      {isShowChatbox && (
+      {isChatMinimized && (
         <div className=" h-12 w-12 bottom-12 right-12 absolute flex items-center justify-center  bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl pointer-events-auto">
           <button
             onClick={handleResetChatbox}
             className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:scale-105  transition-all "
-            title="Hide Chat"
+            title="Show Chat"
           >
+            {unreadCount > 0 && (
+              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-lg h-5 min-w-5 px-1 flex items-center justify-center animate-pulse border-2 border-[#020617]">
+                {unreadCount}
+              </div>
+            )}
             <FaFacebookMessenger size={23} />
           </button>
         </div>
@@ -203,9 +233,9 @@ export const GameUI = () => {
                 <span className="text-[8px] text-white/30">
                   {msg.timestamp
                     ? new Date(msg.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
                     : ""}
                 </span>
               </div>
