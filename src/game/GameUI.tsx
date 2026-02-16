@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect } from "react";
 import { useGameStore } from "../store/gameStore";
 import { useSocketStore } from "../store/socketStore";
@@ -14,9 +15,9 @@ import {
   FaFacebookMessenger,
 } from "react-icons/fa";
 import gsap from "gsap";
-
 export const GameUI = () => {
-  const { currentTurn, gameStatus, resetGame, chatMessages } = useGameStore();
+  const { currentTurn, gameStatus, resetGame, chatMessages, playerColor } =
+    useGameStore();
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatref = useRef<HTMLDivElement>(null);
@@ -24,19 +25,26 @@ export const GameUI = () => {
 
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
-  const [isShowChatbox, setIsSHowChatbox] = useState(false);
+  const [isShowChatbox, setIsShowChatbox] = useState(false);
+  const [lastReadIndex, setLastReadIndex] = useState(0);
+  const currentUser = localStorage.getItem("username");
+
+  const unreadCount = isShowChatbox
+    ? chatMessages.slice(lastReadIndex).filter((m) => m.sender !== currentUser)
+      .length
+    : 0;
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  document.addEventListener("turnRef", () => {});
+  document.addEventListener("turnRef", () => { });
 
   const handleChatBoxMove = () => {
-    setIsSHowChatbox(true);
+    setIsShowChatbox(true);
     gsap.to(chatref.current, {
       y: 160,
       x: 140,
-      opacity: 0,
+      // opacity: 0,
       scale: 0.001,
       ease: "circ.inOut",
     });
@@ -45,11 +53,14 @@ export const GameUI = () => {
     gsap.to(chatref.current, {
       y: 0,
       x: 0,
-      opacity: 1,
+      // opacity: 1,
       scale: 1,
       ease: "circ.inOut",
     });
-    setIsSHowChatbox(false);
+    setIsShowChatbox(false);
+    if (currentRoom?.roomId) {
+      socketActions.readMessage(currentRoom.roomId);
+    }
   };
   useEffect(() => {
     gsap.to(turnRef.current, {
@@ -59,9 +70,17 @@ export const GameUI = () => {
       ease: "power2.inOut",
     });
   }, [currentTurn]);
+
   useEffect(() => {
     scrollToBottom();
-  }, [chatMessages]);
+
+    if (!isShowChatbox && chatMessages.length > lastReadIndex) {
+      setLastReadIndex(chatMessages.length);
+      if (currentRoom?.roomId) {
+        socketActions.readMessage(currentRoom.roomId);
+      }
+    }
+  }, [chatMessages, isShowChatbox, currentRoom?.roomId, lastReadIndex]);
 
   const handleMessageClick = () => {
     if (!message.trim() || !currentRoom?.roomId) return;
@@ -163,7 +182,7 @@ export const GameUI = () => {
           </div>
         </div>
       </div>
-      {currentTurn && (
+      {currentTurn === playerColor && gameStatus === "playing" && (
         <div
           ref={turnRef}
           className="bottom-14 left-10 flex absolute  bg-blue-500/30 h-12 w-32 rounded-2xl items-center text-center justify-center text-white font-bold "
@@ -179,9 +198,9 @@ export const GameUI = () => {
             className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:scale-105  transition-all "
             title="Hide Chat"
           >
-            {chatMessages.length > 0 && (
+            {unreadCount > 0 && (
               <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-lg h-5 min-w-5 px-1 flex items-center justify-center animate-pulse border-2 border-[#020617]">
-                {chatMessages.length}
+                {unreadCount}
               </div>
             )}
             <FaFacebookMessenger size={23} />
@@ -218,31 +237,42 @@ export const GameUI = () => {
         </div>
 
         <div className="h-64 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
-          {chatMessages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex flex-col ${msg.sender === (currentRoom?.creatorUsername || "You") ? "items-start" : "items-start"}`}
-            >
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
-                  {msg.sender}
-                </span>
-                <span className="text-[8px] text-white/30">
-                  {msg.timestamp
-                    ? new Date(msg.timestamp).toLocaleTimeString([], {
+          {chatMessages.map((msg, i) => {
+            const isMe = msg.sender === currentUser;
+            return (
+              <div
+                key={i}
+                className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+              >
+                <div
+                  className={`flex items-baseline gap-2 mb-1 ${isMe ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${isMe ? "text-blue-400" : "text-indigo-400"}`}
+                  >
+                    {isMe ? "You" : msg.sender}
+                  </span>
+                  <span className="text-[8px] text-white/30">
+                    {msg.timestamp
+                      ? new Date(msg.timestamp).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })
-                    : ""}
-                </span>
+                      : ""}
+                  </span>
+                </div>
+                <div
+                  className={`${isMe ? "bg-blue-600/20 border-blue-500/20 rounded-tr-none" : "bg-white/5 border-white/5 rounded-tl-none"} border rounded-2xl px-4 py-2.5 max-w-[90%]`}
+                >
+                  <p
+                    className={`text-sm leading-relaxed font-normal ${isMe ? "text-blue-50" : "text-gray-200"}`}
+                  >
+                    {msg.message}
+                  </p>
+                </div>
               </div>
-              <div className="bg-white/5 border border-white/5 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[90%]">
-                <p className="text-sm text-gray-200 leading-relaxed font-normal">
-                  {msg.message}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {chatMessages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full opacity-20">
               <FaPaperPlane size={24} className="mb-2" />
