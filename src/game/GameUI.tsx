@@ -21,7 +21,6 @@ export const GameUI = () => {
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatref = useRef<HTMLDivElement>(null);
-  const turnRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
@@ -31,13 +30,13 @@ export const GameUI = () => {
 
   const unreadCount = isShowChatbox
     ? chatMessages.slice(lastReadIndex).filter((m) => m.sender !== currentUser)
-      .length
+        .length
     : 0;
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  document.addEventListener("turnRef", () => { });
+  document.addEventListener("turnRef", () => {});
 
   const handleChatBoxMove = () => {
     setIsShowChatbox(true);
@@ -63,12 +62,20 @@ export const GameUI = () => {
     }
   };
   useEffect(() => {
-    gsap.to(turnRef.current, {
-      y: -50,
-      yoyo: true,
-      repeat: -1,
-      ease: "power2.inOut",
-    });
+    gsap.fromTo(
+      ".rectanglee",
+      {
+        scale: 0.3,
+        opacity: 1,
+      },
+      {
+        scale: 1.3,
+        opacity: 0.01,
+        repeat: -1,
+        ease: "exp",
+        duration: 1.8,
+      },
+    );
   }, [currentTurn]);
 
   useEffect(() => {
@@ -100,8 +107,13 @@ export const GameUI = () => {
   return (
     <div className="absolute inset-0 pointer-events-none z-20 font-premium ">
       {/* TOP CONTROLS */}
-      <div className="absolute top-24 left-1/2 -translate-x-1/2 flex items-center gap-4 pointer-events-auto">
-        <div className="px-10 py-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex items-center gap-4">
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-4 pointer-events-auto">
+        {currentTurn === playerColor && gameStatus === "playing" && (
+          <div className="absolute rectanglee">
+            <img src="/Rectangle13.svg" className="z-10 h-25 w-120" />
+          </div>
+        )}
+        <div className="px-10 py-4 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex items-center gap-4 z-50">
           <div className="flex flex-col items-center">
             <div
               className={`h-3 w-3 rounded-full mb-1 ${currentTurn === "w" ? "bg-white shadow-[0_0_10px_white]" : "bg-gray-700"}`}
@@ -182,14 +194,7 @@ export const GameUI = () => {
           </div>
         </div>
       </div>
-      {currentTurn === playerColor && gameStatus === "playing" && (
-        <div
-          ref={turnRef}
-          className="bottom-14 left-10 flex absolute  bg-blue-500/30 h-12 w-32 rounded-2xl items-center text-center justify-center text-white font-bold "
-        >
-          YOUR TURN
-        </div>
-      )}
+
       {/* CHAT PANEL (Bottom Right) */}
       {isShowChatbox && (
         <div className=" h-12 w-12 bottom-12 right-12 absolute flex items-center justify-center  bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl pointer-events-auto">
@@ -255,9 +260,9 @@ export const GameUI = () => {
                   <span className="text-[8px] text-white/30">
                     {msg.timestamp
                       ? new Date(msg.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : ""}
                   </span>
                 </div>
