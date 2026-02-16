@@ -62,6 +62,10 @@ export const socketActions = {
   sendMessage: (roomId: string, message: string) => {
     console.log("💬 user send message", roomId, "this is meesage:", message);
     socket.emit(SOCKET_EVENT.GAME_MESSAGE, { roomId, message });
+  },
+  readMessage : (roomId:string)=>{
+    console.log("🚛 meesage was readed");
+    socket.emit(SOCKET_EVENT.GAME_MESSAGE_READ,{roomId});
   }
 };
 

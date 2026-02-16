@@ -16,6 +16,7 @@ export const SOCKET_EVENT = {
 
     //send message
     GAME_MESSAGE: "game:message",
+    GAME_MESSAGE_READ:"game:message:read",
 
     // Game room / play
     GAME_START: "game:start",
