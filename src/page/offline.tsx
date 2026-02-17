@@ -4,16 +4,23 @@ import {
   Environment,
   PerspectiveCamera,
 } from "@react-three/drei";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 
 import Navbar from "../components/Navbar";
 import { ModelInspector } from "../game/ModelInspector";
 import { ChessScene } from "../game/ChessScene";
-import { ChessBoard } from "../game/ChessBoard";
-import type { Square } from "chess.js";
+import { useGameStore } from "../store/gameStore";
+import { GameUI } from "../game/GameUI";
+
 const Offline = () => {
+  const { startOfflineGame } = useGameStore();
+
+  useEffect(() => {
+    startOfflineGame();
+  }, [startOfflineGame]);
+
   return (
-    <div className="h-screen w-screen relative overflow-hidden">
+    <div className="h-screen w-screen relative overflow-hidden bg-[#020617]">
       <Canvas
         shadows
         className="absolute inset-0 z-0"
@@ -62,14 +69,28 @@ const Offline = () => {
           enableDamping
           dampingFactor={0.05}
         />
+
+        {/* Shadow Plane */}
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, -0.41, 0]}
+          receiveShadow
+        >
+          <planeGeometry args={[30, 30]} />
+          <shadowMaterial opacity={0.4} />
+        </mesh>
       </Canvas>
 
+      {/* Decorative Overlays for depth */}
+      <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020617]/40 pointer-events-none z-1" />
+      <div className="absolute inset-0 bg-radial-at-tl from-blue-500/5 via-transparent to-transparent pointer-events-none z-1" />
+
       <Navbar />
-      <ChessBoard
-        onSquareClick={function (square: Square): void {
-          throw new Error("Function not implemented.");
-        }}
-      />
+      <GameUI />
+
+      <div className="absolute bottom-6 left-6 text-white/30 text-[10px] font-bold tracking-widest uppercase pointer-events-none z-10 transition-opacity hover:opacity-100 italic">
+        3D Render Engine Active • Offline Mode • Drag to rotate
+      </div>
     </div>
   );
 };

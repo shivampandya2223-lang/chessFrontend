@@ -19,6 +19,7 @@ interface GameState {
   lastMove: { from: Square; to: Square } | null;
   inCheck: boolean;
   chatMessages: { sender: string; message: string; timestamp?: number }[];
+  isOffline: boolean;
 
   // Actions
   setPlayerColor: (color: "w" | "b" | null) => void;
@@ -29,6 +30,7 @@ interface GameState {
   updateGameState: (data: { fen: string; turn: "w" | "b"; status: GameStatus; move?: any }) => void;
   getValidMoves: (square: Square) => Square[];
   resetGame: () => void;
+  startOfflineGame: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -41,8 +43,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   moveHistory: [],
   lastMove: null,
   inCheck: false,
-
   chatMessages: [],
+  isOffline: false,
 
   setPlayerColor: (color) => set({ playerColor: color }),
 
@@ -51,15 +53,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   setChatMessages: (messages) => set({ chatMessages: messages }),
 
   selectSquare: (square) => {
-    const { chess, selectedSquare, playerColor, gameStatus } = get();
+    const { chess, selectedSquare, playerColor, gameStatus, isOffline } = get();
 
     if (gameStatus !== "playing") return;
 
-    // 1. Ensure it's the player's turn
-    if (playerColor !== chess.turn()) {
+    // 1. Ensure it's the player's turn (only for online games)
+    if (!isOffline && playerColor !== chess.turn()) {
       set({ selectedSquare: null, validMoves: [] });
       return;
     }
+
+    // 2. For offline, ensure the piece belongs to the current turn
+    const pieceAtTarget = chess.get(square);
 
     // Deselect if same square clicked
     if (selectedSquare === square) {
@@ -77,9 +82,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    // Select own piece
-    const piece = chess.get(square);
-    if (piece && piece.color === playerColor) {
+    // Select piece
+    if (pieceAtTarget && pieceAtTarget.color === chess.turn()) {
       const moves = get().getValidMoves(square);
       set({ selectedSquare: square, validMoves: moves });
     } else {
@@ -88,23 +92,37 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   makeMove: (from, to) => {
-    const { chess, playerColor } = get();
+    const { chess, playerColor, isOffline } = get();
 
-    // Prevent moves if it's not our turn
-    if (playerColor !== chess.turn()) return;
+    // Online move logic
+    if (!isOffline) {
+      if (playerColor !== chess.turn()) return;
+      const currentRoom = useSocketStore.getState().currentRoom;
+      if (currentRoom?.roomId) {
+        console.log("📤 [Authoritative] Emitting move to backend:", { from, to });
+        socketActions.makeMove(currentRoom.roomId, { from, to, promotion: "q" });
+      }
+    } else {
+      // Offline move logic
+      const chessCopy = new Chess(chess.fen());
+      const moveResult = chessCopy.move({ from, to, promotion: "q" });
 
-    // Validate move locally first (optional but good for UX)
-    const chessCopy = new Chess(chess.fen());
-    const moveResult = chessCopy.move({ from, to, promotion: "q" });
+      if (moveResult) {
+        let status: GameStatus = "playing";
+        if (chessCopy.isCheckmate()) status = "checkmate";
+        else if (chessCopy.isDraw()) status = "draw";
+        else if (chessCopy.isStalemate()) status = "stalemate";
 
-    if (!moveResult) return;
-
-    // NO OPTIMISTIC UPDATE HERE.
-    // Instead, we just emit to the backend.
-    const currentRoom = useSocketStore.getState().currentRoom;
-    if (currentRoom?.roomId) {
-      console.log("📤 [Authoritative] Emitting move to backend:", { from, to });
-      socketActions.makeMove(currentRoom.roomId, { from, to, promotion: "q" });
+        set({
+          chess: chessCopy,
+          currentTurn: chessCopy.turn(),
+          gameStatus: status,
+          inCheck: chessCopy.isCheck(),
+          lastMove: { from, to },
+          selectedSquare: null,
+          validMoves: [],
+        });
+      }
     }
 
     // Clear local selection immediately for better UX
@@ -153,6 +171,23 @@ export const useGameStore = create<GameState>((set, get) => ({
       lastMove: null,
       inCheck: false,
       chatMessages: [],
+      isOffline: false,
+    });
+  },
+
+  startOfflineGame: () => {
+    set({
+      chess: new Chess(),
+      playerColor: "w", // Default to white, but will be ignored for selection
+      selectedSquare: null,
+      validMoves: [],
+      currentTurn: "w",
+      gameStatus: "playing",
+      moveHistory: [],
+      lastMove: null,
+      inCheck: false,
+      chatMessages: [],
+      isOffline: true,
     });
   },
 }));

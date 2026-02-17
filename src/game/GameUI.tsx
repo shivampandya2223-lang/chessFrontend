@@ -16,8 +16,15 @@ import {
 } from "react-icons/fa";
 import gsap from "gsap";
 export const GameUI = () => {
-  const { currentTurn, gameStatus, resetGame, chatMessages, playerColor } =
-    useGameStore();
+  const {
+    currentTurn,
+    gameStatus,
+    resetGame,
+    chatMessages,
+    playerColor,
+    isOffline,
+    startOfflineGame,
+  } = useGameStore();
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatref = useRef<HTMLDivElement>(null);
@@ -30,13 +37,13 @@ export const GameUI = () => {
 
   const unreadCount = isShowChatbox
     ? chatMessages.slice(lastReadIndex).filter((m) => m.sender !== currentUser)
-        .length
+      .length
     : 0;
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  document.addEventListener("turnRef", () => {});
+  document.addEventListener("turnRef", () => { });
 
   const handleChatBoxMove = () => {
     setIsShowChatbox(true);
@@ -108,9 +115,9 @@ export const GameUI = () => {
     <div className="absolute inset-0 pointer-events-none z-20 font-premium ">
       {/* TOP CONTROLS */}
       <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-4 pointer-events-auto">
-        {currentTurn === playerColor && gameStatus === "playing" && (
+        {(isOffline || (currentTurn === playerColor && gameStatus === "playing")) && (
           <div className="absolute rectanglee">
-            <img src="/Rectangle13.svg" className="z-10 h-25 w-120" />
+            <img src="/Rectangle13.svg" className="z-10 h-25 w-120" alt="Turn Indicator" />
           </div>
         )}
         <div className="px-10 py-4 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex items-center gap-4 z-50">
@@ -132,7 +139,7 @@ export const GameUI = () => {
               {getStatusMessage()}
             </h2>
             <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.3em] mt-0.5">
-              Match in Progress
+              {isOffline ? "Local Multiplayer" : "Match in Progress"}
             </p>
           </div>
 
@@ -163,152 +170,157 @@ export const GameUI = () => {
         </div>
         <div className="relative group">
           <button
-            onClick={resetGame}
+            onClick={isOffline ? startOfflineGame : resetGame}
             className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-white/60 hover:text-green-400 hover:bg-white/10 hover:scale-105 transition-all shadow-xl"
             title="New Game"
           >
             <FaRedo size={18} />
           </button>
           <div className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-green-400/80 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
-            REMATCH
+            {isOffline ? "RESTART" : "REMATCH"}
           </div>
         </div>
-        <div className="relative group">
-          <button
-            onClick={() => {
-              if (currentRoom?.roomId && localStorage.getItem("username")) {
-                socketActions.leaveGame(
-                  currentRoom.roomId,
-                  localStorage.getItem("username")!,
-                );
-              }
-              navigate("/");
-            }}
-            className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-red-500/60 hover:text-red-500 hover:bg-red-500/10 hover:scale-105 transition-all shadow-xl"
-            title="Leave Game"
-          >
-            <FaDoorOpen size={20} />
-          </button>
-          <div className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-red-400/80 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
-            LEAVE THE ROOM
+        {!isOffline && (
+          <div className="relative group">
+            <button
+              onClick={() => {
+                if (currentRoom?.roomId && localStorage.getItem("username")) {
+                  socketActions.leaveGame(
+                    currentRoom.roomId,
+                    localStorage.getItem("username")!,
+                  );
+                }
+                navigate("/");
+              }}
+              className="h-14 w-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-red-500/60 hover:text-red-500 hover:bg-red-500/10 hover:scale-105 transition-all shadow-xl"
+              title="Leave Game"
+            >
+              <FaDoorOpen size={20} />
+            </button>
+            <div className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-red-400/80 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
+              LEAVE THE ROOM
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* CHAT PANEL (Bottom Right) */}
-      {isShowChatbox && (
-        <div className=" h-12 w-12 bottom-12 right-12 absolute flex items-center justify-center  bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl pointer-events-auto">
-          <button
-            onClick={handleResetChatbox}
-            className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:scale-105  transition-all "
-            title="Hide Chat"
-          >
-            {unreadCount > 0 && (
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-lg h-5 min-w-5 px-1 flex items-center justify-center animate-pulse border-2 border-[#020617]">
-                {unreadCount}
-              </div>
-            )}
-            <FaFacebookMessenger size={23} />
-          </button>
-        </div>
-      )}
-      <div
-        ref={chatref}
-        className="absolute bottom-10 right-10 w-87.5 bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col"
-      >
-        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
-          {/* CHATBOX MOVE BUTTON */}
-          <div className="flex items-center gap-2">
-            <FaChessBoard className="text-blue-500" />
-            <span className="text-xs font-bold text-white tracking-widest uppercase">
-              Room Chat
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <FaCircle size={6} className="text-green-500" />
-            <span className="text-[10px] text-green-500 font-bold uppercase">
-              Live
-            </span>
-          </div>
-          <div className="">
-            <button
-              className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white transition-all"
-              title="Hide Chat"
-              onClick={handleChatBoxMove}
-            >
-              <FaChevronDown size={12} rotate={120} />
-            </button>
-          </div>
-        </div>
-
-        <div className="h-64 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
-          {chatMessages.map((msg, i) => {
-            const isMe = msg.sender === currentUser;
-            return (
-              <div
-                key={i}
-                className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+      {/* CHAT PANEL (Bottom Right) - Only show if not offline */}
+      {!isOffline && (
+        <>
+          {isShowChatbox && (
+            <div className=" h-12 w-12 bottom-12 right-12 absolute flex items-center justify-center  bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl pointer-events-auto">
+              <button
+                onClick={handleResetChatbox}
+                className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:scale-105  transition-all "
+                title="Hide Chat"
               >
-                <div
-                  className={`flex items-baseline gap-2 mb-1 ${isMe ? "flex-row-reverse" : "flex-row"}`}
-                >
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider ${isMe ? "text-blue-400" : "text-indigo-400"}`}
-                  >
-                    {isMe ? "You" : msg.sender}
-                  </span>
-                  <span className="text-[8px] text-white/30">
-                    {msg.timestamp
-                      ? new Date(msg.timestamp).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : ""}
-                  </span>
-                </div>
-                <div
-                  className={`${isMe ? "bg-blue-600/20 border-blue-500/20 rounded-tr-none" : "bg-white/5 border-white/5 rounded-tl-none"} border rounded-2xl px-4 py-2.5 max-w-[90%]`}
-                >
-                  <p
-                    className={`text-sm leading-relaxed font-normal ${isMe ? "text-blue-50" : "text-gray-200"}`}
-                  >
-                    {msg.message}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-          {chatMessages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full opacity-20">
-              <FaPaperPlane size={24} className="mb-2" />
-              <p className="text-xs font-bold uppercase tracking-widest">
-                No messages yet
-              </p>
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-lg h-5 min-w-5 px-1 flex items-center justify-center animate-pulse border-2 border-[#020617]">
+                    {unreadCount}
+                  </div>
+                )}
+                <FaFacebookMessenger size={23} />
+              </button>
             </div>
           )}
-          <div ref={chatEndRef} />
-        </div>
+          <div
+            ref={chatref}
+            className="absolute bottom-10 right-10 w-87.5 bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col"
+          >
+            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+              <div className="flex items-center gap-2">
+                <FaChessBoard className="text-blue-500" />
+                <span className="text-xs font-bold text-white tracking-widest uppercase">
+                  Room Chat
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <FaCircle size={6} className="text-green-500" />
+                <span className="text-[10px] text-green-500 font-bold uppercase">
+                  Live
+                </span>
+              </div>
+              <div className="">
+                <button
+                  className="h-7 w-7 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white transition-all"
+                  title="Hide Chat"
+                  onClick={handleChatBoxMove}
+                >
+                  <FaChevronDown size={12} />
+                </button>
+              </div>
+            </div>
 
-        <div className="p-4 pt-2">
-          <div className="relative group">
-            <input
-              placeholder="Type your message..."
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleMessageClick()}
-              className="w-full bg-white/5 hover:bg-white/10 text-white text-sm h-12 rounded-2xl px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 border border-white/5 transition-all"
-            />
-            <button
-              className="absolute right-2 top-2 h-8 w-8 bg-blue-600 hover:bg-blue-500 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-30 disabled:grayscale"
-              onClick={handleMessageClick}
-              disabled={!message.trim()}
-            >
-              <FaPaperPlane size={12} />
-            </button>
+            <div className="h-64 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
+              {chatMessages.map((msg, i) => {
+                const isMe = msg.sender === currentUser;
+                return (
+                  <div
+                    key={i}
+                    className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                  >
+                    <div
+                      className={`flex items-baseline gap-2 mb-1 ${isMe ? "flex-row-reverse" : "flex-row"}`}
+                    >
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider ${isMe ? "text-blue-400" : "text-indigo-400"}`}
+                      >
+                        {isMe ? "You" : msg.sender}
+                      </span>
+                      <span className="text-[8px] text-white/30">
+                        {msg.timestamp
+                          ? new Date(msg.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                          : ""}
+                      </span>
+                    </div>
+                    <div
+                      className={`${isMe ? "bg-blue-600/20 border-blue-500/20 rounded-tr-none" : "bg-white/5 border-white/5 rounded-tl-none"} border rounded-2xl px-4 py-2.5 max-w-[90%]`}
+                    >
+                      <p
+                        className={`text-sm leading-relaxed font-normal ${isMe ? "text-blue-50" : "text-gray-200"}`}
+                      >
+                        {msg.message}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+              {chatMessages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full opacity-20">
+                  <FaPaperPlane size={24} className="mb-2" />
+                  <p className="text-xs font-bold uppercase tracking-widest">
+                    No messages yet
+                  </p>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className="p-4 pt-2">
+              <div className="relative group">
+                <input
+                  placeholder="Type your message..."
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleMessageClick()}
+                  className="w-full bg-white/5 hover:bg-white/10 text-white text-sm h-12 rounded-2xl px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 border border-white/5 transition-all"
+                />
+                <button
+                  className="absolute right-2 top-2 h-8 w-8 bg-blue-600 hover:bg-blue-500 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-30 disabled:grayscale"
+                  onClick={handleMessageClick}
+                  disabled={!message.trim()}
+                >
+                  <FaPaperPlane size={12} />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* GAME OVER OVERLAY */}
       {gameStatus !== "playing" && (
@@ -340,10 +352,10 @@ export const GameUI = () => {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={resetGame}
+                onClick={isOffline ? startOfflineGame : resetGame}
                 className="btn-premium btn-primary py-4 text-base"
               >
-                REMATCH NOW
+                {isOffline ? "PLAY AGAIN" : "REMATCH NOW"}
               </button>
 
               <button
@@ -352,20 +364,23 @@ export const GameUI = () => {
               >
                 RETURN HOME
               </button>
-              <button
-                onClick={() => {
-                  if (currentRoom?.roomId && localStorage.getItem("username")) {
-                    socketActions.leaveGame(
-                      currentRoom.roomId,
-                      localStorage.getItem("username")!,
-                    );
-                  }
-                  navigate("/");
-                }}
-                className="btn-leave btn-secondary py-4 text-base"
-              >
-                LEAVE THIS GAME
-              </button>
+
+              {!isOffline && (
+                <button
+                  onClick={() => {
+                    if (currentRoom?.roomId && localStorage.getItem("username")) {
+                      socketActions.leaveGame(
+                        currentRoom.roomId,
+                        localStorage.getItem("username")!,
+                      );
+                    }
+                    navigate("/");
+                  }}
+                  className="btn-leave btn-secondary py-4 text-base"
+                >
+                  LEAVE THIS GAME
+                </button>
+              )}
             </div>
           </div>
         </div>
