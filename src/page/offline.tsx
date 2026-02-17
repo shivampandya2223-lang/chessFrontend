@@ -6,15 +6,14 @@ import {
 } from "@react-three/drei";
 import { Suspense } from "react";
 
-import { ChessScene } from "../game/ChessScene";
-import { GameUI } from "../game/GameUI";
-import { ModelInspector } from "../game/ModelInspector";
 import Navbar from "../components/Navbar";
-
-const Game = () => {
+import { ModelInspector } from "../game/ModelInspector";
+import { ChessScene } from "../game/ChessScene";
+import { ChessBoard } from "../game/ChessBoard";
+import type { Square } from "chess.js";
+const Offline = () => {
   return (
-    <div className="h-screen w-screen relative overflow-hidden bg-[#020617]">
-      {/* 3D Scene */}
+    <div className="h-screen w-screen relative overflow-hidden">
       <Canvas
         shadows
         className="absolute inset-0 z-0"
@@ -27,7 +26,7 @@ const Game = () => {
           <Environment preset="city" />
         </Suspense>
 
-        <ambientLight intensity={0.8} />
+        <ambientLight intensity={0.4} />
         <directionalLight
           position={[10, 20, 10]}
           intensity={1.2}
@@ -63,33 +62,16 @@ const Game = () => {
           enableDamping
           dampingFactor={0.05}
         />
-
-        {/* Shadow Plane */}
-        <mesh
-          rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, -0.41, 0]}
-          receiveShadow
-        >
-          <planeGeometry args={[30, 30]} />
-          <shadowMaterial opacity={0.4} />
-        </mesh>
       </Canvas>
 
-      {/* Decorative Overlays for depth */}
-      <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020617]/40 pointer-events-none z-1" />
-      <div className="absolute inset-0 bg-radial-at-tl from-blue-500/5 via-transparent to-transparent pointer-events-none z-1" />
-
-      {/* UI layer */}
-      <GameUI />
-
-      {/* Persist Navbar for navigation */}
       <Navbar />
-
-      <div className="absolute bottom-6 left-6 text-white/30 text-[10px] font-bold tracking-widest uppercase pointer-events-none z-10 transition-opacity hover:opacity-100 italic">
-        3D Render Engine Active • Drag to rotate • Scroll to zoom
-      </div>
+      <ChessBoard
+        onSquareClick={function (square: Square): void {
+          throw new Error("Function not implemented.");
+        }}
+      />
     </div>
   );
 };
 
-export default Game;
+export default Offline;

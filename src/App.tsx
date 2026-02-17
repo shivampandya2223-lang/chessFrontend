@@ -4,9 +4,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./page/LoginPage";
 import { useSocket } from "./utils/useSocket";
 import { Toaster } from "react-hot-toast";
+import Offline from "./page/offline";
 
 const SocketListener = () => {
-
   useSocket();
   return null;
 };
@@ -28,6 +28,7 @@ const App = () => {
           <Route element={<Hero />} path="/home" />
           <Route element={<Game />} path="/game" />
           <Route element={<LoginPage />} path="/loginPage" />
+          <Route element={<Offline />} path="/offline-game" />
         </Routes>
       </Router>
     </div>

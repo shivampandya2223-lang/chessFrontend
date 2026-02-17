@@ -129,10 +129,10 @@ const Hero = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   className="btn-premium btn-primary flex items-center gap-3 text-lg px-10 group"
-                  onClick={() => navigate("/game")}
+                  onClick={() => navigate("/offline-game")}
                 >
                   <FaPlay className="text-sm group-hover:translate-x-1 transition-transform" />
-                  PLAY SOLO
+                  OFFLINE GAME
                 </button>
                 <button
                   className="btn-premium btn-secondary flex items-center gap-3 text-lg px-10"
