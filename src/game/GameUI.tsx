@@ -28,6 +28,7 @@ export const GameUI = () => {
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatref = useRef<HTMLDivElement>(null);
+  const rectangleeRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
@@ -37,13 +38,13 @@ export const GameUI = () => {
 
   const unreadCount = isShowChatbox
     ? chatMessages.slice(lastReadIndex).filter((m) => m.sender !== currentUser)
-      .length
+        .length
     : 0;
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  document.addEventListener("turnRef", () => { });
+  document.addEventListener("turnRef", () => {});
 
   const handleChatBoxMove = () => {
     setIsShowChatbox(true);
@@ -69,21 +70,23 @@ export const GameUI = () => {
     }
   };
   useEffect(() => {
-    gsap.fromTo(
-      ".rectanglee",
-      {
-        scale: 0.3,
-        opacity: 1,
-      },
-      {
-        scale: 1.3,
-        opacity: 0.01,
-        repeat: -1,
-        ease: "exp",
-        duration: 1.8,
-      },
-    );
-  }, [currentTurn]);
+    if (rectangleeRef.current) {
+      gsap.fromTo(
+        rectangleeRef.current,
+        {
+          scale: 0.3,
+          opacity: 1,
+        },
+        {
+          scale: 1.3,
+          opacity: 0.01,
+          repeat: -1,
+          ease: "exp",
+          duration: 1.8,
+        },
+      );
+    }
+  }, [currentTurn, playerColor, gameStatus, isOffline]);
 
   useEffect(() => {
     scrollToBottom();
@@ -115,9 +118,14 @@ export const GameUI = () => {
     <div className="absolute inset-0 pointer-events-none z-20 font-premium ">
       {/* TOP CONTROLS */}
       <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-4 pointer-events-auto">
-        {(isOffline || (currentTurn === playerColor && gameStatus === "playing")) && (
-          <div className="absolute rectanglee">
-            <img src="/Rectangle13.svg" className="z-10 h-25 w-120" alt="Turn Indicator" />
+        {(isOffline ||
+          (currentTurn === playerColor && gameStatus === "playing")) && (
+          <div ref={rectangleeRef} className="rectanglee absolute ">
+            <img
+              src="/Rectangle13.svg"
+              className="z-10 h-25 w-120"
+              alt="Turn Indicator"
+            />
           </div>
         )}
         <div className="px-10 py-4 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex items-center gap-4 z-50">
@@ -270,9 +278,9 @@ export const GameUI = () => {
                       <span className="text-[8px] text-white/30">
                         {msg.timestamp
                           ? new Date(msg.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
                           : ""}
                       </span>
                     </div>
@@ -368,7 +376,10 @@ export const GameUI = () => {
               {!isOffline && (
                 <button
                   onClick={() => {
-                    if (currentRoom?.roomId && localStorage.getItem("username")) {
+                    if (
+                      currentRoom?.roomId &&
+                      localStorage.getItem("username")
+                    ) {
                       socketActions.leaveGame(
                         currentRoom.roomId,
                         localStorage.getItem("username")!,
