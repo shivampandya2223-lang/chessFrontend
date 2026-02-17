@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, OrbitControls, Float } from "@react-three/drei";
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { Group } from "three";
 import ChessModel from "../hooks/chess-model";
 import { useNavigate } from "react-router-dom";
@@ -10,11 +10,18 @@ import { useCreateRoomMutation } from "../queries/game.queries";
 import { isLoggedIn } from "../utils/auth";
 import { socketActions } from "../socket/socketActions";
 import { FaPlay, FaUserFriends, FaChevronRight } from "react-icons/fa";
+import { useGameStore } from "../store/gameStore";
 
 const RotatingChess = () => {
   const { scene } = ChessModel();
+  const setAssetsLoaded = useGameStore((state) => state.setAssetsLoaded);
   const groupRef = useRef<Group>(null);
   const heroScene = useMemo(() => scene.clone(), [scene]);
+
+  useEffect(() => {
+    // Only set to true if it was false
+    setAssetsLoaded(true);
+  }, [setAssetsLoaded]);
 
   useFrame(() => {
     if (!groupRef.current) return;

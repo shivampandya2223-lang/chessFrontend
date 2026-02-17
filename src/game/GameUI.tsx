@@ -18,6 +18,9 @@ import gsap from "gsap";
 import { useStockfish } from "../hooks/useStockfish";
 
 export const GameUI = () => {
+  // Always call hooks at the top level, never inside conditions!
+  useStockfish();
+
   const {
     currentTurn,
     gameStatus,
@@ -29,12 +32,6 @@ export const GameUI = () => {
     startOfflineGame,
     startAIGame,
   } = useGameStore();
-
-  // Only run the AI hook if we are in an AI game
-  if (isAI) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useStockfish();
-  }
   const { currentRoom } = useSocketStore();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatref = useRef<HTMLDivElement>(null);

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group } from "three";
 import { ChessBoard } from "./ChessBoard";
@@ -35,8 +35,12 @@ const pieceKey = (piece: Piece) =>
 
 export const ChessScene = () => {
   const { scene } = ChessModel();
-  const { chess, selectedSquare, selectSquare } = useGameStore();
+  const { chess, selectedSquare, selectSquare, setAssetsLoaded } = useGameStore();
   const boardRef = useRef<Group>(null);
+
+  useEffect(() => {
+    setAssetsLoaded(true);
+  }, [setAssetsLoaded]);
 
   // Clone board and hide pieces in GLTF
   const boardModel = useMemo(() => {

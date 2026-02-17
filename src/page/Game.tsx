@@ -4,8 +4,6 @@ import {
   Environment,
   PerspectiveCamera,
 } from "@react-three/drei";
-import { Suspense } from "react";
-
 import { ChessScene } from "../game/ChessScene";
 import { GameUI } from "../game/GameUI";
 import { ModelInspector } from "../game/ModelInspector";
@@ -22,10 +20,7 @@ const Game = () => {
         dpr={[1, 2]}
       >
         <PerspectiveCamera makeDefault position={[0, 6, 6]} fov={50} />
-
-        <Suspense fallback={null}>
-          <Environment preset="city" />
-        </Suspense>
+        <Environment preset="city" />
 
         <ambientLight intensity={0.8} />
         <directionalLight
@@ -47,10 +42,8 @@ const Game = () => {
           castShadow
         />
 
-        <Suspense fallback={null}>
-          {import.meta.env.DEV && <ModelInspector />}
-          <ChessScene />
-        </Suspense>
+        {import.meta.env.DEV && <ModelInspector />}
+        <ChessScene />
 
         <OrbitControls
           enablePan={false}

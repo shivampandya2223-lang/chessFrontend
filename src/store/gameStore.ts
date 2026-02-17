@@ -25,8 +25,10 @@ interface GameState {
   isOffline: boolean;
   isAI: boolean;
   aiDifficulty: number;
+  isAssetsLoaded: boolean;
 
   // Actions
+  setAssetsLoaded: (loaded: boolean) => void;
   setPlayerColor: (color: "w" | "b" | null) => void;
   addChatMessage: (message: { sender: string; message: string; timestamp?: number }) => void;
   setChatMessages: (messages: { sender: string; message: string; timestamp?: number }[]) => void;
@@ -54,7 +56,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   isOffline: false,
   isAI: false,
   aiDifficulty: 10,
+  isAssetsLoaded: false,
 
+  setAssetsLoaded: (loaded) => set({ isAssetsLoaded: loaded }),
   setPlayerColor: (color) => set({ playerColor: color }),
 
   addChatMessage: (message) => set((state) => ({ chatMessages: [...state.chatMessages, message] })),

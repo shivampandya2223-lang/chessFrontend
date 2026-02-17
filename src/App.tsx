@@ -7,14 +7,20 @@ import { Toaster } from "react-hot-toast";
 import Offline from "./page/offline";
 import AIGame from "./page/AIGame";
 
+import Loader from "./components/Loader";
+import { useGameStore } from "./store/gameStore";
+
 const SocketListener = () => {
   useSocket();
   return null;
 };
 
 const App = () => {
+  const isAssetsLoaded = useGameStore((state) => state.isAssetsLoaded);
+
   return (
-    <div className=" h-screen w-screen">
+    <div className=" h-screen w-screen relative">
+      <Loader isVisible={!isAssetsLoaded} />
       <Router>
         <Toaster
           position="top-center"
