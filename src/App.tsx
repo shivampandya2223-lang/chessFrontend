@@ -5,6 +5,7 @@ import LoginPage from "./page/LoginPage";
 import { useSocket } from "./utils/useSocket";
 import { Toaster } from "react-hot-toast";
 import Offline from "./page/offline";
+import AIGame from "./page/AIGame";
 
 const SocketListener = () => {
   useSocket();
@@ -29,6 +30,7 @@ const App = () => {
           <Route element={<Game />} path="/game" />
           <Route element={<LoginPage />} path="/loginPage" />
           <Route element={<Offline />} path="/offline-game" />
+          <Route element={<AIGame />} path="/ai-game" />
         </Routes>
       </Router>
     </div>
