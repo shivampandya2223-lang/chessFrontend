@@ -6,6 +6,9 @@ import type { Square } from "chess.js";
 import { socketActions } from "../socket/socketActions";
 import { useSocketStore } from "./socketStore";
 
+
+//board theme 
+
 export type GameStatus = "playing" | "checkmate" | "draw" | "stalemate";
 
 interface GameState {
@@ -191,3 +194,4 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 }));
+
