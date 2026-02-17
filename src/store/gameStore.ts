@@ -23,6 +23,8 @@ interface GameState {
   inCheck: boolean;
   chatMessages: { sender: string; message: string; timestamp?: number }[];
   isOffline: boolean;
+  isAI: boolean;
+  aiDifficulty: number;
 
   // Actions
   setPlayerColor: (color: "w" | "b" | null) => void;
@@ -34,6 +36,8 @@ interface GameState {
   getValidMoves: (square: Square) => Square[];
   resetGame: () => void;
   startOfflineGame: () => void;
+  startAIGame: (difficulty?: number) => void;
+  setAILevel: (level: number) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -48,6 +52,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   inCheck: false,
   chatMessages: [],
   isOffline: false,
+  isAI: false,
+  aiDifficulty: 10,
 
   setPlayerColor: (color) => set({ playerColor: color }),
 
@@ -95,10 +101,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   makeMove: (from, to) => {
-    const { chess, playerColor, isOffline } = get();
+    const { chess, playerColor, isOffline, isAI } = get();
 
     // Online move logic
-    if (!isOffline) {
+    if (!isOffline && !isAI) {
       if (playerColor !== chess.turn()) return;
       const currentRoom = useSocketStore.getState().currentRoom;
       if (currentRoom?.roomId) {
@@ -106,11 +112,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         socketActions.makeMove(currentRoom.roomId, { from, to, promotion: "q" });
       }
     } else {
-      // Offline move logic
+      // Offline/AI move logic
+      console.log(`🎲 [GameStore] Attempting move: ${from} -> ${to}`);
       const chessCopy = new Chess(chess.fen());
       const moveResult = chessCopy.move({ from, to, promotion: "q" });
 
       if (moveResult) {
+        console.log(`✅ [GameStore] Move successful. New FEN: ${chessCopy.fen()}`);
         let status: GameStatus = "playing";
         if (chessCopy.isCheckmate()) status = "checkmate";
         else if (chessCopy.isDraw()) status = "draw";
@@ -125,6 +133,8 @@ export const useGameStore = create<GameState>((set, get) => ({
           selectedSquare: null,
           validMoves: [],
         });
+      } else {
+        console.error(`❌ [GameStore] Invalid move attempted: ${from} -> ${to}`);
       }
     }
 
@@ -175,6 +185,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       inCheck: false,
       chatMessages: [],
       isOffline: false,
+      isAI: false,
     });
   },
 
@@ -191,7 +202,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       inCheck: false,
       chatMessages: [],
       isOffline: true,
+      isAI: false,
     });
   },
+
+  startAIGame: (difficulty = 10) => {
+    set({
+      chess: new Chess(),
+      playerColor: "w",
+      selectedSquare: null,
+      validMoves: [],
+      currentTurn: "w",
+      gameStatus: "playing",
+      moveHistory: [],
+      lastMove: null,
+      inCheck: false,
+      chatMessages: [],
+      isOffline: false,
+      isAI: true,
+      aiDifficulty: difficulty,
+    });
+  },
+
+  setAILevel: (level: number) => set({ aiDifficulty: level }),
 }));
 

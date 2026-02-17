@@ -10,6 +10,7 @@ import { useCreateRoomMutation } from "../queries/game.queries";
 import { isLoggedIn } from "../utils/auth";
 import { socketActions } from "../socket/socketActions";
 import { FaPlay, FaUserFriends, FaChevronRight } from "react-icons/fa";
+import { useGameStore } from "../store/gameStore";
 
 const RotatingChess = () => {
   const { scene } = ChessModel();
@@ -140,6 +141,16 @@ const Hero = () => {
                 >
                   <FaUserFriends className="text-lg" />
                   WITH FRIEND
+                </button>
+                <button
+                  className="btn-premium btn-primary flex items-center gap-3 text-lg px-10 group"
+                  onClick={() => {
+                    useGameStore.getState().startAIGame(20);
+                    navigate("/game");
+                  }}
+                >
+                  <FaPlay className="text-sm group-hover:translate-x-1 transition-transform" />
+                  PLAY WITH AI
                 </button>
               </div>
             ) : (
