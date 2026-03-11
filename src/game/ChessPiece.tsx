@@ -15,7 +15,7 @@ interface ChessPieceProps {
   model: Group;
   position: [number, number, number];
   isSelected: boolean;
-  pieceKey: string; // 2. Add this prop
+  pieceKey: string; 
   onClick: () => void;
 }
 
@@ -23,7 +23,7 @@ export const ChessPiece = ({
   model,
   position,
   isSelected,
-  pieceKey, // 3. Destructure prop
+  pieceKey, 
   onClick,
 }: ChessPieceProps) => {
   const groupRef = useRef<Group>(null);
@@ -41,7 +41,6 @@ export const ChessPiece = ({
         child.geometry.computeBoundingBox();
         child.geometry.computeBoundingSphere();
 
-        // Premium Material Override
         if (child.material) {
           // White pieces material
           if (pieceKey.startsWith("w_")) {
@@ -74,17 +73,14 @@ export const ChessPiece = ({
 
     renderRoot.scale.setScalar(scaleFactor);
 
-    // 4. Apply Auto-centering
     renderRoot.position.x = -center.x * scaleFactor;
     renderRoot.position.z = -center.z * scaleFactor;
     renderRoot.position.y = -box.min.y * scaleFactor;
 
-    // 5. Apply Manual Offsets
-    // Since we scaled the object, the offset needs to be relative to world space
     const offsets = MANUAL_OFFSETS[pieceKey];
     if (offsets) {
       renderRoot.position.x += offsets[0]; // Adjust X
-      renderRoot.position.y += offsets[1]; // Adjust Y (rarely needed)
+      renderRoot.position.y += offsets[1]; // Adjust Y 
       renderRoot.position.z += offsets[2]; // Adjust Z
     }
 

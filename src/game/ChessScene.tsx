@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group } from "three";
@@ -20,32 +21,31 @@ const squareToPosition = (
 // Convert chess.js piece to key
 const pieceKey = (piece: Piece) =>
   `${piece.color}_${piece.type}` as
-  | "w_p"
-  | "w_r"
-  | "w_n"
-  | "w_b"
-  | "w_q"
-  | "w_k"
-  | "b_p"
-  | "b_r"
-  | "b_n"
-  | "b_b"
-  | "b_q"
-  | "b_k";
+    | "w_p"
+    | "w_r"
+    | "w_n"
+    | "w_b"
+    | "w_q"
+    | "w_k"
+    | "b_p"
+    | "b_r"
+    | "b_n"
+    | "b_b"
+    | "b_q"
+    | "b_k";
 
 export const ChessScene = () => {
   const { scene } = ChessModel();
-  const { chess, selectedSquare, selectSquare, setAssetsLoaded } = useGameStore();
+  const { chess, selectedSquare, selectSquare, setAssetsLoaded } =
+    useGameStore();
   const boardRef = useRef<Group>(null);
 
   useEffect(() => {
     setAssetsLoaded(true);
   }, [setAssetsLoaded]);
 
-  // Clone board and hide pieces in GLTF
   const boardModel = useMemo(() => {
     const clone = scene.clone(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     clone.traverse((child: any) => {
       if (child.name.startsWith("W_") || child.name.startsWith("B_"))
         child.visible = false;
@@ -57,10 +57,8 @@ export const ChessScene = () => {
     return clone;
   }, [scene]);
 
-  // Extract piece models
   const pieceModels = useMemo(() => {
     const map = new Map<string, Group>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     scene.traverse((child: any) => {
       if (!child.name) return;
       const name = child.name;
@@ -68,7 +66,6 @@ export const ChessScene = () => {
       const register = (key: string) => {
         if (map.has(key)) return;
         const clone = child.clone(true);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         clone.traverse((c: any) => {
           if (c.isMesh) c.castShadow = true;
         });
@@ -91,7 +88,6 @@ export const ChessScene = () => {
     return map;
   }, [scene]);
 
-  // Optional idle board rotation
   useFrame((state) => {
     if (!boardRef.current) return;
     boardRef.current.rotation.y =
@@ -112,7 +108,7 @@ export const ChessScene = () => {
 
           const square = `${"abcdefgh"[f]}${8 - r}` as Square;
           const pos = squareToPosition(f, r);
-          const key = pieceKey(piece); // e.g., "w_k", "w_q"
+          const key = pieceKey(piece);
           const model = pieceModels.get(key);
 
           if (!model) return null;
@@ -122,7 +118,7 @@ export const ChessScene = () => {
               model={model}
               position={pos}
               isSelected={selectedSquare === square}
-              pieceKey={key} // <--- ADD THIS LINE
+              pieceKey={key}
               onClick={() => selectSquare(square)}
             />
           );

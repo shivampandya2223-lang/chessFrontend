@@ -1,10 +1,6 @@
 import { useEffect } from "react";
 import ChessModel from "../hooks/chess-model";
 
-/**
- * Debug component to inspect the structure of the chess GLB model
- * This will log all objects in the model to help you understand how to map pieces
- */
 export const ModelInspector = () => {
   const { scene } = ChessModel();
 

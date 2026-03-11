@@ -83,6 +83,4 @@ export const GameRequestsPopup = () => {
   );
 };
 
-// Need to import RiGroupFill in GameRequestsPopup too if used, but it's usually in Navbar.
-// Actually, let's just use a simple icon or the RiGroupFill if it's available.
 import { RiGroupFill } from "react-icons/ri";

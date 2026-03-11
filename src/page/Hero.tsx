@@ -19,7 +19,6 @@ const RotatingChess = () => {
   const heroScene = useMemo(() => scene.clone(), [scene]);
 
   useEffect(() => {
-    // Only set to true if it was false
     setAssetsLoaded(true);
   }, [setAssetsLoaded]);
 

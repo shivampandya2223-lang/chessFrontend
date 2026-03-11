@@ -16,7 +16,6 @@ const AIGame = () => {
     const { startAIGame } = useGameStore();
 
     useEffect(() => {
-        // Start AI game with difficulty 20
         startAIGame(20);
     }, [startAIGame]);
 

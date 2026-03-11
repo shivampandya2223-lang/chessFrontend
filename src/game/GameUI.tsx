@@ -18,7 +18,6 @@ import gsap from "gsap";
 import { useStockfish } from "../hooks/useStockfish";
 
 export const GameUI = () => {
-  // Always call hooks at the top level, never inside conditions!
   useStockfish();
 
   const {
